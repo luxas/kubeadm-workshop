@@ -76,6 +76,7 @@ spec:
         args:
         - --web
         - --kubernetes
+        - -d
 ---
 apiVersion: v1
 kind: Service
@@ -115,6 +116,9 @@ metadata:
 data:
   ngrok.yaml: |
     web_addr: 0.0.0.0:4040
+    log: stdout
+    log_level: debug
+    log_format: logfmt
     tunnels:
       traefik:
         proto: http
@@ -146,8 +150,7 @@ spec:
           containerPort: 4040
         args:
         - start
-        - -config
-        - /etc/ngrok/ngrok.yaml
+        - -config=/etc/ngrok/ngrok.yaml
         - traefik
         volumeMounts:
           - name: ngrok-cfg
