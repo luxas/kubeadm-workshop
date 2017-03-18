@@ -1,0 +1,137 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pv-claim
+  namespace: kube-system
+  labels:
+    k8s-app: grafana
+    task: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: influxdb-pv-claim
+  namespace: kube-system
+  labels:
+    k8s-app: influxdb
+    task: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: monitoring-grafana
+  labels:
+    k8s-app: grafana
+    task: monitoring
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: grafana
+        task: monitoring
+    spec:
+      containers:
+      - name: grafana
+        image: luxas/heapster-grafana:v4.0.2
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        env:
+        - name: INFLUXDB_HOST
+          value: monitoring-influxdb
+        - name: GRAFANA_PORT
+          value: "3000"
+          # The following env variables are required to make Grafana accessible via
+          # the kubernetes api-server proxy. On production clusters, we recommend
+          # removing these env variables, setup auth for grafana, and expose the grafana
+          # service using a LoadBalancer or a public IP.
+        - name: GF_AUTH_BASIC_ENABLED
+          value: "false"
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "true"
+        - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+          value: Admin
+        - name: GF_SERVER_ROOT_URL
+          value: /
+        volumeMounts:
+        - mountPath: /var/lib/grafana
+          name: grafana-storage
+      volumes:
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: grafana
+    task: monitoring
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: monitoring-grafana
+  name: monitoring-grafana
+  namespace: kube-system
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    k8s-app: grafana
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: monitoring-influxdb
+  labels:
+    task: monitoring
+    k8s-app: influxdb
+  namespace: kube-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        task: monitoring
+        k8s-app: influxdb
+    spec:
+      containers:
+      - name: influxdb
+        image: luxas/heapster-influxdb:v1.1.1
+        volumeMounts:
+        - mountPath: /data
+          name: influxdb-storage
+      volumes:
+      - name: influxdb-storage
+        persistentVolumeClaim:
+          claimName: influxdb-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: influxdb
+    task: monitoring
+    kubernetes.io/cluster-service: "true"
+    kubernetes.io/name: monitoring-influxdb
+  name: monitoring-influxdb
+  namespace: kube-system
+spec:
+  ports:
+  - port: 8086
+    targetPort: 8086
+  selector:
+    k8s-app: influxdb
