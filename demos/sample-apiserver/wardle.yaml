@@ -73,6 +73,7 @@ spec:
       - name: etcd
         image: luxas/etcd:3.0.17
         args:
+        - etcd
         - --data-dir=/var/lib/etcd
         volumeMounts:
         - mountPath: /var/lib/etcd
