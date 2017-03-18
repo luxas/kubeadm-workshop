@@ -81,7 +81,8 @@ controllerManagerExtraArgs:
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
-#selfHosted: true
+  proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
+  proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
 ```
 
 #### Disabling CRI for the `ClusterFirstWithHostNet` feature
@@ -218,24 +219,112 @@ service "monitoring-influxdb" created
 
 ```console
 $ kubectl api-versions
+apiregistration.k8s.io/v1alpha1
+apps/v1beta1
+authentication.k8s.io/v1
+authentication.k8s.io/v1beta1
+authorization.k8s.io/v1
+authorization.k8s.io/v1beta1
+autoscaling/v1
+autoscaling/v2alpha1
+batch/v1
+batch/v2alpha1
+certificates.k8s.io/v1beta1
+extensions/v1beta1
+policy/v1beta1
+rbac.authorization.k8s.io/v1alpha1
+rbac.authorization.k8s.io/v1beta1
+rook.io/v1beta1
+settings.k8s.io/v1alpha1
+storage.k8s.io/v1
+storage.k8s.io/v1beta1
+v1
 
 $ kubectl apply -f demos/sample-apiserver/wardle.yaml
+namespace "wardle" created
+persistentvolumeclaim "etcd-pv-claim" created
+serviceaccount "apiserver" created
+clusterrolebinding "wardle:system:auth-delegator" created
+rolebinding "wardle-auth-reader" created
+deployment "wardle-apiserver" created
+service "api" created
+apiservice "v1alpha1.wardle.k8s.io" created
 
+$ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n wardle apply -f -
 $ kubectl api-versions
+apiregistration.k8s.io/v1alpha1
+apps/v1beta1
+authentication.k8s.io/v1
+authentication.k8s.io/v1beta1
+authorization.k8s.io/v1
+authorization.k8s.io/v1beta1
+autoscaling/v1
+autoscaling/v2alpha1
+batch/v1
+batch/v2alpha1
+certificates.k8s.io/v1beta1
+extensions/v1beta1
+policy/v1beta1
+rbac.authorization.k8s.io/v1alpha1
+rbac.authorization.k8s.io/v1beta1
+rook.io/v1beta1
+settings.k8s.io/v1alpha1
+storage.k8s.io/v1
+storage.k8s.io/v1beta1
+v1
+***wardle.k8s.io/v1alpha1***
 
-$ kubectl apply -f demos/sample-apiserver/flunder.yaml
+$ # There is no foobarbaz resource, but the flunders resource does now exist
+$ kubectl get foobarbaz
+the server doesn't have a resource type "foobarbaz"
+
+$ kubectl get flunders
+No resources found.
+
+$ kubectl apply -f demos/sample-apiserver/my-flunder.yaml
+flunder "my-first-flunder" created
 ```
+
+Make sure this is real and check the etcd database for the resource, and yeah, it exists in the separate etcd instance!
 
 ```console
 $ kubectl -n wardle exec -it $(kubectl -n wardle get po -l app=wardle-apiserver -otemplate --template "{{ (index .items 0).metadata.name}}") -c etcd /bin/sh -- -c \
 	"ETCDCTL_API=3 etcdctl get /registry/wardle.kubernetes.io/registry/wardle.kubernetes.io/wardle.k8s.io/flunders/my-first-flunder"
+/registry/wardle.kubernetes.io/registry/wardle.kubernetes.io/wardle.k8s.io/flunders/my-first-flunder
+{"kind":"Flunder","apiVersion":"wardle.k8s.io/v1alpha1","metadata":{"name":"my-first-flunder","uid":"8e4e1029-0c14-11e7-928a-def758206707","creationTimestamp":"2017-03-18T19:53:28Z","labels":{"sample-label":"true"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"wardle.k8s.io/v1alpha1\",\"kind\":\"Flunder\",\"metadata\":{\"annotations\":{},\"labels\":{\"sample-label\":\"true\"},\"name\":\"my-first-flunder\",\"namespace\":\"default\"}}\n"}},"spec":{},"status":{}}
 ```
-
 
 ### Deploying the Prometheus Operator for monitoring Services in the cluster
 
 ```console
 $ kubectl apply -f demos/monitoring/prometheus-operator.yaml
+clusterrole "prometheus-operator" created
+serviceaccount "prometheus-operator" created
+clusterrolebinding "prometheus-operator" created
+deployment "prometheus-operator" created
 
 $ kubectl apply -f demos/monitoring/sample-prometheus-instance.yaml
+clusterrole "prometheus" created
+serviceaccount "prometheus" created
+clusterrolebinding "prometheus" created
+deployment "sample-metrics-app" created
+service "sample-metrics-app" created
+servicemonitor "sample-metrics-app" created
+prometheus "sample-metrics-prom" created
+service "sample-metrics-prom" created
+
+$ kubectl get svc
+NAME                  CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+kubernetes            10.96.0.1       <none>        443/TCP          30m
+prometheus-operated   None            <none>        9090/TCP         4m
+sample-metrics-app    10.108.65.91    <none>        8080/TCP         4m
+sample-metrics-prom   10.108.71.184   <nodes>       9090:30999/TCP   4m
+```
+
+
+### Deploying a custom metrics API Server
+
+```console
+$ kubectl apply -f demos/monitoring/custom-metrics.yaml
+TODO
 ```
