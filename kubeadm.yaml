@@ -1,0 +1,11 @@
+kind: MasterConfiguration
+apiVersion: kubeadm.k8s.io/v1alpha1
+networking:
+  podSubnet: "10.244.0.0/16"
+controllerManagerExtraArgs:
+  controllers: "*,-persistentvolume-binder"
+  horizontal-pod-autoscaler-use-rest-clients: "true"
+  node-monitor-grace-period: "10s"
+apiServerExtraArgs:
+  runtime-config: "api/all=true"
+  feature-gates: "TaintBasedEvictions=true"
