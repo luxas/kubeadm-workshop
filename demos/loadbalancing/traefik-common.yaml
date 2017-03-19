@@ -1,0 +1,101 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: traefik-ingress-controller
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - services
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: traefik-ingress-controller
+  namespace: kube-system
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: traefik-ingress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: traefik-ingress-controller
+subjects:
+- kind: ServiceAccount
+  name: traefik-ingress-controller
+  namespace: kube-system
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: traefik-cfg
+  namespace: kube-system
+  labels:
+    app: traefik
+data:
+  traefik.toml: |
+    defaultEntryPoints = ["http"]
+    [entryPoints]
+      [entryPoints.http]
+      address = ":80"
+      [entryPoints.http.auth.basic]
+      # Login using simply "kubernetes:rocks!"
+      users = ["kubernetes:$apr1$q9WIZ4Kf$/qtDTegOeoHG8zWWUsm.S1."]
+
+    # Enable the kubernetes integration
+    [kubernetes]
+
+    [web]
+    address = ":8080"
+
+    [web.statistics]
+
+    [web.metrics.prometheus]
+      buckets=[0.1,0.3,1.2,5.0]
+
+  traefik-acme.toml: |
+    defaultEntryPoints = ["http", "https"]
+    [entryPoints]
+      [entryPoints.http]
+      address = ":80"
+        [entryPoints.http.redirect]
+        entryPoint = "https"
+      [entryPoints.https]
+      address = ":443"
+      [entryPoints.https.auth.basic]
+      # Login using simply "kubernetes:rocks!"
+      users = ["kubernetes:$apr1$q9WIZ4Kf$/qtDTegOeoHG8zWWUsm.S1."]
+      [entryPoints.https.tls]
+    [acme]
+    email = "example@example.com"
+    storageFile = "acme.json"
+    onDemand = true
+    onHostRule = true
+    caServer = "https://acme-v01.api.letsencrypt.org/directory"
+    entryPoint = "https"
+
+    # Enable the kubernetes integration
+    [kubernetes]
+
+    [web]
+    address = ":8080"
+
+    [web.statistics]
+
+    [web.metrics.prometheus]
+      buckets=[0.1,0.3,1.2,5.0]
