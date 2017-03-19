@@ -66,7 +66,7 @@ spec:
         - name: GF_AUTH_ANONYMOUS_ORG_ROLE
           value: Admin
         - name: GF_SERVER_ROOT_URL
-          value: /
+          value: /grafana
         volumeMounts:
         - mountPath: /var/lib/grafana
           name: grafana-storage
@@ -135,3 +135,19 @@ spec:
     targetPort: 8086
   selector:
     k8s-app: influxdb
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: monitoring-grafana
+  namespace: kube-system
+  annotations:
+    traefik.frontend.rule.type: pathprefixstrip
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /grafana
+        backend:
+          serviceName: monitoring-grafana
+          servicePort: 80
