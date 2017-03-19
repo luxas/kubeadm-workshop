@@ -7,6 +7,10 @@ Hi and welcome to this tutorial and demonstration of how to build a bare-metal K
 I'm one of the main kubeadm developers and very excited about bare metal as well, 
 so I thought showing some of the things you can do with Kubernetes/kubeadm would be a great fit!
 
+### Highligts
+
+* Showcases what you can do on bare-metal, even behind a firewall with no public IP address
+
 What's more, the Kubernetes yaml manifests included in this repository are multi-architecture and works on ARM, both 32- and 64-bit!
 
 My own setup at home consists of this hardware:
@@ -77,18 +81,30 @@ networking:
 controllerManagerExtraArgs:
   controllers: "*,-persistentvolume-binder"
   horizontal-pod-autoscaler-use-rest-clients: "true"
+  horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
   proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
   proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
+selfHosted: true
 ```
+
+A brief walkthrough what the statements mean:
+ - `podSubnet: "10.244.0.0/16"` makes `kube-proxy` aware of which packets are internal and external
+ - `controllers: "*,-persistentvolume-binder"` disables the `persistentvolume-binder` controller
+   - since the ``persistentvolume-binder`` exec's out to an `rbd` binary and that binary is unavailable in the official controller-manager image
+     combined with the fact that this is a `rook`-specific thing, it's better to run the `persistentvolume-binder` controller in a separately
+     maintained image which has the `rbd` binary included.
+ - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for [custom metrics](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
+ - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
+ - `proxy-client-cert-file/proxy-client-key-file` set the cert/key pair for the API Server when it's talking to the built-in aggregated API Server.
 
 #### Disabling CRI for the `ClusterFirstWithHostNet` feature
 
 Disable CRI on the master only so the API Server can use the [`ClusterFirstWithHostNet`](https://github.com/kubernetes/kubernetes/pull/29378) feature, which makes the API Server
-lookup aggregated API Server's IPs from the built-in DNS server. The dockershim CRI implementation doesn't have this feature yet.
+lookup aggregated API Server's IPs from the built-in DNS server. The dockershim CRI implementation doesn't have this feature yet, ref: [#foo](#)
 
 ```console
 $ echo "Environment=\"KUBELET_EXTRA_ARGS=--enable-cri=false\"" >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -98,7 +114,7 @@ $ systemctl daemon-reload
 After you've done that, go ahead and initialize the master node with this command:
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/demo-hyperkube-amd64:v1.6.0-kubeadm-workshop kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop kubeadm init --config kubeadm.yaml
 ```
 
 `KUBE_HYPERKUBE_IMAGE` is an alpha feature of kubeadm and will be an option in the config file in future versions of kubeadm.
@@ -109,13 +125,6 @@ $ KUBE_HYPERKUBE_IMAGE=luxas/demo-hyperkube-amd64:v1.6.0-kubeadm-workshop kubead
 $ kubectl apply -f https://raw.githubusercontent.com/weaveworks/weave/1.9/prog/weave-kube/weave-daemonset-k8s-1.6.yaml
 ```
 
-#### Enabling in-cluster DNS for the API Server static Pod
-
-```console
-$ sed -e "s|spec:|spec:\n  dnsPolicy: ClusterFirstWithHostNet|" -i /etc/kubernetes/manifests/kube-apiserver.yaml
-$ docker ps | grep kube-apiserver | awk '{print $1}' | xargs docker kill
-```
-
 #### Untainting the master node
 
 ```console
@@ -124,21 +133,18 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 ### Setting up the worker nodes
 
-```
-kubeadm join --token <foo> <master-ip>:<master-port>
+```console
+$ kubeadm join --token <foo> <master-ip>:<master-port>
 ```
 
 ### Deploying the Dashboard and Heapster
 
-```
+```console
 $ kubectl apply -f demos/dashboard/dashboard.yaml
 serviceaccount "dashboard" created
 clusterrolebinding "dashboard" created
 deployment "kubernetes-dashboard" created
 service "kubernetes-dashboard" created
-
-$ kubectl -n kube-system get service kubernetes-dashboard -o template --template="{{ (index .spec.ports 0).nodePort }}"
-$ kubectl -n kube-system port-forward $(kubectl -n kube-system get po -l app=kubernetes-dashboard -otemplate --template "{{ (index .items 0).metadata.name}}") 30100:9090
 ```
 
 ```console
@@ -149,9 +155,18 @@ deployment "heapster" created
 service "heapster" created
 ```
 
+After `heapster` is up and running (check with `kubectl -n kube-system get pods`), you should be able to see the 
+CPU and memory usage of the nodes in the cluster and for individual Pods:
+
+```console
+$ kubectl top nodes
+TODO
+```
+
 ### Deploying an Ingress Controller for exposing HTTP services
 
 ```console
+$ kubectl apply -f demos/loadbalancing/traefik-common.yaml
 $ kubectl apply -f demos/loadbalancing/traefik-ngrok.yaml
 clusterrole "traefik-ingress-controller" created
 serviceaccount "traefik-ingress-controller" created
@@ -163,8 +178,8 @@ configmap "ngrok-cfg" created
 deployment "ngrok" created
 service "ngrok" created
 
-$ curl -sSL $(kubectl -n kube-system get svc ngrok -o template --template "{{.spec.clusterIP}}")/api/tunnels | jq ".tunnels[0].public_url"
-"https://foobarxyz.ngrok.io"
+$ curl -sSL $(kubectl -n kube-system get svc ngrok -o template --template "{{.spec.clusterIP}}")/api/tunnels | jq  ".tunnels[].public_url" | sed 's/"//g;/http:/d'
+https://foobarxyz.ngrok.io
 ```
 
 #### Exposing the Dashboard via the Ingress Controller
