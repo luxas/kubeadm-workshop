@@ -1,9 +1,11 @@
 REGISTRY?=luxas
-IMAGE=storage-controller-manager
+IMAGE?=storage-controller-manager
 VERSION?=$(shell curl -sSL dl.k8s.io/release/latest.txt)
 ARCH?=amd64
 TEMP_DIR:=$(shell mktemp -d)
 QEMUVERSION=v2.7.0
+ALL_ARCH=amd64 arm arm64
+ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 ifeq ($(ARCH),arm)
 	QEMUARCH=arm
@@ -37,7 +39,7 @@ endif
 
 push-%:
 	$(MAKE) ARCH=$* build
-	docker push $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION)
+	docker push $(REGISTRY)/$(IMAGE)-$*:$(VERSION)
 
 push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMAGE):$(VERSION)
