@@ -14,21 +14,24 @@ ifeq ($(ARCH),arm64)
 	QEMUARCH=aarch64
 endif
 
-BASEIMAGE=gcr.io/google-containers/debian-iptables-$(ARCH):v7
+BASEIMAGE?=gcr.io/google-containers/debian-iptables-$(ARCH):v7
 
-hyperkube:
+./kubernetes:
 	git clone https://github.com/kubernetes/kubernetes
-	cd kubernetes \
-		&& git checkout -b $(shell basename $(TEMP_DIR)) \
-		&& git pull https://github.com/deads2k/kubernetes server-04-combined \
-		&& git pull https://github.com/luxas/kubernetes fix_metrics_client \
-		&& build/run.sh /bin/bash -c "KUBE_BUILD_PLATFORMS=linux/$(ARCH) make WHAT=cmd/hyperkube"
-	cp kubernetes/_output/dockerized/bin/linux/$(ARCH)/hyperkube $(TEMP_DIR)
 
-build: hyperkube
-	cp ./* $(TEMP_DIR)
+$(TEMP_DIR)/hyperkube: ./kubernetes
+	cd kubernetes \
+		&& git checkout master \
+		&& git checkout -b $(shell basename $(TEMP_DIR)) \
+		&& git pull --no-edit https://github.com/deads2k/kubernetes server-04-combined \
+		&& git pull --no-edit https://github.com/luxas/kubernetes fix_metrics_client \
+		&& build/run.sh /bin/bash -c "KUBE_BUILD_PLATFORMS=linux/$(ARCH) make WHAT=cmd/hyperkube" \
+		&& cp _output/dockerized/bin/linux/$(ARCH)/hyperkube $(TEMP_DIR)
+
+build: $(TEMP_DIR)/hyperkube
+	cp Dockerfile $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
-	cd $(TEMP_DIR) && sed -i "s|ARCH|$(QEMUARCH)|g" Dockerfile
+	cd $(TEMP_DIR) && sed -i "s|QEMUARCH|$(QEMUARCH)|g" Dockerfile
 
 ifeq ($(ARCH),amd64)
 	# When building "normally" for amd64, remove the whole line, it has no part in the amd64 image
