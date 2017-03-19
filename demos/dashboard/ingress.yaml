@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: kubernetes-dashboard
   namespace: kube-system
+  annotations:
+    traefik.frontend.rule.type: pathprefixstrip
 spec:
   rules:
   - http:
