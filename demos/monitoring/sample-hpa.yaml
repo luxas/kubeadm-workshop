@@ -15,4 +15,4 @@ spec:
         kind: Service
         name: my-nginx
       metricName: connections-per-seconds
-      targetValue: 1000m
+      targetValue: 10
