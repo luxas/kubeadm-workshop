@@ -4,7 +4,7 @@ TEMP_DIR:=$(shell mktemp -d)
 ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
-VERSION?=$(shell curl -sSL https://raw.githubusercontent.com/nodejs/docker-node/master/7.5/alpine/Dockerfile | grep "ENV NODE_VERSION" | awk '{print $$3}')
+VERSION?=$(shell curl -sSL https://raw.githubusercontent.com/nodejs/docker-node/master/7.7/alpine/Dockerfile | grep "ENV NODE_VERSION" | awk '{print $$3}')
 
 ifeq ($(ARCH),arm)
 	BASEIMAGE?=armhf\\/alpine:3.5
@@ -22,7 +22,7 @@ ifeq ($(ARCH),amd64)
 	docker pull node:alpine
 	docker tag node:alpine $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION)
 else
-	curl -sSL https://raw.githubusercontent.com/nodejs/docker-node/master/7.5/alpine/Dockerfile > $(TEMP_DIR)/Dockerfile
+	curl -sSL https://raw.githubusercontent.com/nodejs/docker-node/master/7.7/alpine/Dockerfile > $(TEMP_DIR)/Dockerfile
 	cd $(TEMP_DIR) && sed -e "s/alpine:[0-9.]*/$(BASEIMAGE)\nCOPY qemu-$(QEMUARCH)-static \\/usr\\/bin\\//" -i Dockerfile
 
 	# Register /usr/bin/qemu-ARCH-static as the handler for ARM binaries in the kernel
