@@ -104,7 +104,7 @@ A brief walkthrough what the statements mean:
 #### Disabling CRI for the `ClusterFirstWithHostNet` feature
 
 Disable CRI on the master only so the API Server can use the [`ClusterFirstWithHostNet`](https://github.com/kubernetes/kubernetes/pull/29378) feature, which makes the API Server
-lookup aggregated API Server's IPs from the built-in DNS server. The dockershim CRI implementation doesn't have this feature yet, ref: [#foo](#)
+lookup aggregated API Server's IPs from the built-in DNS server. The dockershim CRI implementation doesn't have this feature yet, ref: [#43352](https://github.com/kubernetes/kubernetes/issues/43352)
 
 ```console
 $ echo "Environment=\"KUBELET_EXTRA_ARGS=--enable-cri=false\"" >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -115,6 +115,14 @@ After you've done that, go ahead and initialize the master node with this comman
 
 ```console
 $ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop kubeadm init --config kubeadm.yaml
+```
+
+Then go ahead and make the credentials your own with these commands:
+
+```bash
+sudo cp /etc/kubernetes/admin.conf $HOME/
+sudo chown $(id -u):$(id -g) $HOME/admin.conf
+export KUBECONFIG=$HOME/admin.conf
 ```
 
 `KUBE_HYPERKUBE_IMAGE` is an alpha feature of kubeadm and will be an option in the config file in future versions of kubeadm.
@@ -142,7 +150,7 @@ $ kubeadm join --token <foo> <master-ip>:<master-port>
 ```console
 $ kubectl apply -f demos/dashboard/dashboard.yaml
 serviceaccount "dashboard" created
-clusterrolebinding "dashboard" created
+clusterrolebinding "dashboard-admin" created
 deployment "kubernetes-dashboard" created
 service "kubernetes-dashboard" created
 ```
@@ -167,10 +175,12 @@ TODO
 
 ```console
 $ kubectl apply -f demos/loadbalancing/traefik-common.yaml
-$ kubectl apply -f demos/loadbalancing/traefik-ngrok.yaml
 clusterrole "traefik-ingress-controller" created
 serviceaccount "traefik-ingress-controller" created
 clusterrolebinding "traefik-ingress-controller" created
+configmap "traefik-cfg" created
+
+$ kubectl apply -f demos/loadbalancing/traefik-ngrok.yaml
 deployment "traefik-ingress-controller" created
 service "traefik-ingress-controller" created
 service "traefik-web" created
@@ -213,8 +223,8 @@ $ echo $MONS
 $ sed 's#INSERT_HERE#'$MONS'#' demos/storage/rook/storageclass.yaml | kubectl apply -f -
 storageclass "rook-block" created
 
-$ ROOK_EXTRA_NAMESPACES="kube-system"
-$ for ns in ${ROOK_EXTRA_NAMESPACES}; do kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n ${ns} apply -f -; done
+$ # Repeat this step for all namespaces you want to deploy PersistentVolumes with Rook in
+$ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n kube-system apply -f -
 secret "rook-rbd-user" created
 ```
 
@@ -228,6 +238,7 @@ deployment "monitoring-grafana" created
 service "monitoring-grafana" created
 deployment "monitoring-influxdb" created
 service "monitoring-influxdb" created
+ingress "monitoring-grafana" created
 ```
 
 ### Sample API Server
@@ -341,5 +352,25 @@ sample-metrics-prom   10.108.71.184   <nodes>       9090:30999/TCP   4m
 
 ```console
 $ kubectl apply -f demos/monitoring/custom-metrics.yaml
-TODO
+namespace "custom-metrics" created
+serviceaccount "custom-metrics-apiserver" created
+clusterrolebinding "custom-metrics:system:auth-delegator" created
+rolebinding "custom-metrics-auth-reader" created
+clusterrole "custom-metrics-read" created
+clusterrolebinding "custom-metrics-read" created
+deployment "custom-metrics-apiserver" created
+service "api" created
+apiservice "v1alpha1.custom-metrics.metrics.k8s.io" created
+clusterrole "custom-metrics-server-resources" created
+clusterrolebinding "hpa-controller-custom-metrics" created
+```
+
+
+```console
+$ kubectl apply -f demos/sample-webservice/nginx.yaml
+deployment "my-nginx" created
+service "my-nginx" created
+
+$ kubectl apply -f demos/monitoring/sample-hpa.yaml
+horizontalpodautoscaler "my-hpa" created
 ```
