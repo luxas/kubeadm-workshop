@@ -55,7 +55,7 @@ data:
       address = ":80"
       [entryPoints.http.auth.basic]
       # Login using simply "kubernetes:rocks!"
-      users = ["kubernetes:$apr1$q9WIZ4Kf$/qtDTegOeoHG8zWWUsm.S1."]
+      users = ["kubernetes:$apr1$G8MQMx/M$5SsH5VwBiGRH4bcbauEk61"]
 
     # Enable the kubernetes integration
     [kubernetes]
@@ -79,7 +79,7 @@ data:
       address = ":443"
       [entryPoints.https.auth.basic]
       # Login using simply "kubernetes:rocks!"
-      users = ["kubernetes:$apr1$q9WIZ4Kf$/qtDTegOeoHG8zWWUsm.S1."]
+      users = ["kubernetes:$apr1$G8MQMx/M$5SsH5VwBiGRH4bcbauEk61"]
       [entryPoints.https.tls]
     [acme]
     email = "example@example.com"
