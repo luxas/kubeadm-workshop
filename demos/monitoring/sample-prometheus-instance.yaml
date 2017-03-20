@@ -43,7 +43,7 @@ spec:
         app: sample-metrics-app
     spec:
       containers:
-      - image: luxas/autoscale-demo-amd64:v1.0.1
+      - image: luxas/autoscale-demo:v0.1.0
         name: sample-metrics-app
         ports:
         - name: web
@@ -92,7 +92,10 @@ spec:
   resources:
     requests:
       memory: 300Mi
-  storage: {}
+  storage:
+    resources:
+      requests:
+        storage: 3Gi
 ---
 apiVersion: v1
 kind: Service
