@@ -15,7 +15,7 @@ spec:
         run: my-nginx
     spec:
       containers:
-      - image: luxas/nginx:v1.11.9
+      - image: luxas/nginx:v1.11.10
         name: my-nginx
         ports:
         - containerPort: 80
