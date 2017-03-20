@@ -6,19 +6,10 @@ ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 VERSION?=v0.1.0
-
-ifeq ($(ARCH),arm)
-	BASEIMAGE?=alpine:3.5
-endif
-ifeq ($(ARCH),arm)
-	BASEIMAGE?=armhf/alpine:3.5
-endif
-ifeq ($(ARCH),arm64)
-	BASEIMAGE?=aarch64/alpine:3.5
-endif
+BASEIMAGE=luxas/node-$(ARCH):latest
 
 build:
-	cp Dockerfile $(TEMP_DIR)
+	cp Dockerfile *.js $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
 
