@@ -7,7 +7,7 @@ ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 VERSION?=v0.1.0
 
-ifeq ($(ARCH),arm)
+ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
 endif
 ifeq ($(ARCH),arm)
@@ -24,7 +24,7 @@ build:
 
 	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.7 /bin/bash -c "\
 		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver && \
-		go build -o /build/sample-apiserver k8s.io/sample-apiserver"
+		CGO_ENABLED=0 go build -a -tags netgo -o /build/sample-apiserver k8s.io/sample-apiserver"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
 	rm -r $(TEMP_DIR)
