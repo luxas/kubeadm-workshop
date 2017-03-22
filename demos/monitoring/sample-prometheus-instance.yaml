@@ -43,7 +43,7 @@ spec:
         app: sample-metrics-app
     spec:
       containers:
-      - image: luxas/autoscale-demo:v0.1.0
+      - image: luxas/autoscale-demo:v0.1.1
         name: sample-metrics-app
         ports:
         - name: web
