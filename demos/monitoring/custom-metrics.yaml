@@ -82,7 +82,7 @@ spec:
       serviceAccountName: custom-metrics-apiserver
       containers:
       - name: custom-metrics-server
-        image: luxas/custom-metrics-server-amd64:v0.1.0
+        image: luxas/custom-metrics-server:v0.1.0
         ports:
         - containerPort: 443
 ---
