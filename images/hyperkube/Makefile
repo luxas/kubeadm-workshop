@@ -21,10 +21,8 @@ BASEIMAGE?=gcr.io/google-containers/debian-iptables-$(ARCH):v7
 
 $(TEMP_DIR)/hyperkube: ./kubernetes
 	cd kubernetes \
-		&& git checkout master \
-		&& git checkout -b $(shell basename $(TEMP_DIR)) \
-		&& git pull --no-edit https://github.com/deads2k/kubernetes server-04-combined \
-		&& git pull --no-edit https://github.com/luxas/kubernetes fix_metrics_client \
+		&& git reset --hard HEAD \
+		&& patch -p1 < ../apiregistration.patch \
 		&& build/run.sh /bin/bash -c "KUBE_BUILD_PLATFORMS=linux/$(ARCH) make WHAT=cmd/hyperkube" \
 		&& cp _output/dockerized/bin/linux/$(ARCH)/hyperkube $(TEMP_DIR)
 
