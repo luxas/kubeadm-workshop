@@ -101,23 +101,14 @@ A brief walkthrough what the statements mean:
  - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
  - `proxy-client-cert-file/proxy-client-key-file` set the cert/key pair for the API Server when it's talking to the built-in aggregated API Server.
 
-#### Disabling CRI for the `ClusterFirstWithHostNet` feature
-
-Disable CRI on the master only so the API Server can use the [`ClusterFirstWithHostNet`](https://github.com/kubernetes/kubernetes/pull/29378) feature, which makes the API Server
-lookup aggregated API Server's IPs from the built-in DNS server. The dockershim CRI implementation doesn't have this feature yet, ref: [#43352](https://github.com/kubernetes/kubernetes/issues/43352)
-
-```console
-$ echo "Environment=\"KUBELET_EXTRA_ARGS=--enable-cri=false\"" >> /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
-$ systemctl daemon-reload
-```
-
-After you've done that, go ahead and initialize the master node with this command:
+You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
 $ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop kubeadm init --config kubeadm.yaml
 ```
 
-Then go ahead and make the credentials your own with these commands:
+In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
+Here is an example how to do it as a regular user.
 
 ```bash
 sudo cp /etc/kubernetes/admin.conf $HOME/
@@ -129,11 +120,18 @@ export KUBECONFIG=$HOME/admin.conf
 
 #### Deploying the Pod networking layer
 
+The networking layer in Kubernetes is extensible, and you may pick the networking solution that fits you the best.
+I've tested this with Weave Net, but it should work with any other compliant provider.
+
+Here's how to use Weave Net as the networking provider:
+
 ```console
-$ kubectl apply -f https://raw.githubusercontent.com/weaveworks/weave/1.9/prog/weave-kube/weave-daemonset-k8s-1.6.yaml
+$ kubectl apply -f https://git.io/weave-kube-1.6
 ```
 
 #### Untainting the master node
+
+In case you only have one node available for testing and want to run normal workloads on the master as well, run this command:
 
 ```console
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
@@ -141,11 +139,17 @@ $ kubectl taint nodes --all node-role.kubernetes.io/master-
 
 ### Setting up the worker nodes
 
+`kubeadm init` above will print out a `kubeadm join` command for you to paste for joining the other nodes in your cluster to the master.
+
 ```console
-$ kubeadm join --token <foo> <master-ip>:<master-port>
+$ kubeadm join --token <token> <master-ip>:<master-port>
 ```
 
 ### Deploying the Dashboard and Heapster
+
+I really like visualizing the cluster resources in the [Kubernetes Dashboard](https://github.com/kubernetes/dashboard) (although I'm mostly a CLI guy).
+
+You can install the dashboard with this command:
 
 ```console
 $ kubectl apply -f demos/dashboard/dashboard.yaml
@@ -155,12 +159,22 @@ deployment "kubernetes-dashboard" created
 service "kubernetes-dashboard" created
 ```
 
+You probably want some monitoring as well, if you install [Heapster](https://github.com/kubernetes/heapster) you can easily keep track of the CPU and
+memory usage in your cluster. Those stats will also be shown in the dashboard!
+
 ```console
 $ kubectl apply -f demos/monitoring/heapster.yaml
 serviceaccount "heapster" created
 clusterrolebinding "heapster" created
 deployment "heapster" created
 service "heapster" created
+```
+
+You should now see some Services in the `kube-system` namespace:
+
+```console
+$ kubectl -n kube-system get svc
+TODO
 ```
 
 After `heapster` is up and running (check with `kubectl -n kube-system get pods`), you should be able to see the 
@@ -172,6 +186,23 @@ TODO
 ```
 
 ### Deploying an Ingress Controller for exposing HTTP services
+
+Now that you have created the dashboard and heapster Deployments and Services, how can you access them?
+
+One solution might be making your Services of the NodePort type, but that's not a good long-term solution.
+
+Instead, there is the Ingress object in Kubernetes that let's you create rules for how Services in your cluster should be exposed to the world.
+Before one can create Ingress rules, you need a Ingress Controller that watches for rules, applies them and forwards requests as specified.
+
+One Ingress Controller provider is [Traefik](traefik.io), and I'm using that one here.
+
+In this demo I go a step further. Normally in order to expose your app you have locally to the internet requires that one of your machines has a public Internet
+address. We can workaround this very smoothly in a Kubernetes cluster by letting [Ngrok](ngrok.io) forward requests from a public subdomain of `ngrok.io` to the
+Traefik Ingress Controller that's running in our cluster.
+
+Using ngrok here is perfect for hybrid clusters where you have no control over the network you're connected to... you just have internet access.
+Also, this method is can be used in nearly any environment and will behave the same. But for production deployments (which we aren't dealing with here),
+you should of course expose a real loadbalancer node with a public IP.
 
 ```console
 $ kubectl apply -f demos/loadbalancing/traefik-common.yaml
@@ -192,15 +223,45 @@ $ curl -sSL $(kubectl -n kube-system get svc ngrok -o template --template "{{.sp
 https://foobarxyz.ngrok.io
 ```
 
+You can now try to access the ngrok URL that got outputted by the above command. It should look like this:
+
+[Image](#TODO)
+
+However, since we have no Ingress rules, Traefik just returns 404.
+
+Let's change that by creating an Ingress rule!
+
 #### Exposing the Dashboard via the Ingress Controller
+
+We want to expose the dashboard to our newly-created public URL, under the `/dashboard` path.
+
+That's easily achievable using this command:
 
 ```console
 $ kubectl apply -f demos/dashboard/ingress.yaml
 ingress "kubernetes-dashboard" created
 ```
 
+The Traefik Ingress Controller is set up to require basic auth before one can access the services.
+
+I've set the username to `kubernetes` and the password to `rocks!`. You can obviously change this if you want by editing the `traefik-common.yaml` before deploying
+the Ingress Controller.
+
+When you've signed in, you'll see a dashboard like this:
+
+[Image](#TODO)
 
 ### Deploying a persistent storage layer on top of Kubernetes with Rook
+
+Stateless services are cool, but deploying stateful applications on your Kubernetes cluster is even more fun.
+
+For that you need somewhere to store persistent data, and that's not easy to achieve on bare metal. [Rook](https://github.com/rook/rook) is a promising project
+aiming to solve this by building a Kubernetes integration layer upon the battle-tested Ceph storage solution.
+
+Rook is using `ThirdPartyResources` for knowing how to set up your storage solution, and has an [operator](#TODO) that is listening for these TPRs.
+
+Here is how to create a default Rook cluster by deploying the operator, a controller that will listen for PersistentVolumeClaims that need binding, a Rook Cluster
+ThirdPartyResource and finally a StorageClass.
 
 ```console
 $ kubectl apply -f demos/storage/rook/operator.yaml
@@ -228,7 +289,15 @@ $ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/
 secret "rook-rbd-user" created
 ```
 
+One limitation with v0.3.0 is that you can't control to which namespaces the rook authentication Secret should be deployed, so if you want to create
+`PersistentVolumes` in an other namespace than `default`, run the above `kubectl` command.
+
 ### Deploying InfluxDB and Grafana for storing and visualizing CPU and memory metrics
+
+Now that we have got persistent storage in our cluster, we can deploy some stateful services. For example, we can store monitoring data aggregated by Heapster
+in an InfluxDB database and visualize that data with a Grafana dashboard.
+
+You must do this if you want to gather CPU/memory data from Heapster for a longer time, by default heapster just saves data from the latest couple of minutes.
 
 ```console
 $ kubectl apply -f demos/monitoring/influx-grafana.yaml
@@ -241,7 +310,20 @@ service "monitoring-influxdb" created
 ingress "monitoring-grafana" created
 ```
 
+Note that an Ingress rule was created for Grafana automatically. You can access your Grafana instance at the `https://{ngrok url}/grafana` URL.
+
 ### Sample API Server
+
+The core API Server is great, but what about if you want to write your own, extended API server that contains more high-level features that build on top of Kubernetes
+but still be able to control those high-level features from kubectl?
+
+This is possible, a lot of work has been put into this and this feature will probably be ready in Kubernetes v1.7. If you can't wait, like me, you can test this flow 
+out easily already. The reason I'm using my own `hyperkube` image for this demo is two-fold:
+
+1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
+2) It contains vanilla v1.6 Kubernetes + [this patch](#TODO) that makes it possible to register extended API Servers smoothly.
+
+First, let's check which API groups are available in v1.6:
 
 ```console
 $ kubectl api-versions
@@ -265,7 +347,18 @@ settings.k8s.io/v1alpha1
 storage.k8s.io/v1
 storage.k8s.io/v1beta1
 v1
+```
 
+It's pretty straightforward to write your own API server now with the break-out of [`k8s.io/apiserver`](https://github.com/kubernetes/apiserver).
+The `sig-api-machinery` team has also given us a sample implementation: [`k8s.io/sample-apiserver`](https://github.com/kubernetes/sample-apiserver).
+
+The sample API Server called wardle, contains one API group: `wardle.k8s.io/v1alpha1` and one API resource in that group: `Flunder`
+This guide shows how easy it will be to extend the Kubernetes API in the future.
+
+The sample API Server saves its data to a separate etcd instance running in-cluster. Notice the PersistentVolume that is created for etcd for that purpose.
+Note that in the future, the etcd Operator should probably be used for running etcd instead of running it manually like now.
+
+```console
 $ kubectl apply -f demos/sample-apiserver/wardle.yaml
 namespace "wardle" created
 persistentvolumeclaim "etcd-pv-claim" created
@@ -277,6 +370,12 @@ service "api" created
 apiservice "v1alpha1.wardle.k8s.io" created
 
 $ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n wardle apply -f -
+```
+
+After a few minutes, when the extended API server is up and running, `kubectl` will auto-discover that API group and it will be possible to
+create, list and delete Flunder objects just as any other API object.
+
+```console
 $ kubectl api-versions
 apiregistration.k8s.io/v1alpha1
 apps/v1beta1
@@ -311,7 +410,7 @@ $ kubectl apply -f demos/sample-apiserver/my-flunder.yaml
 flunder "my-first-flunder" created
 ```
 
-Make sure this is real and check the etcd database for the resource, and yeah, it exists in the separate etcd instance!
+If you want to make sure this is real, you can check the etcd database running in-cluster with this command:
 
 ```console
 $ kubectl -n wardle exec -it $(kubectl -n wardle get po -l app=wardle-apiserver -otemplate --template "{{ (index .items 0).metadata.name}}") -c etcd /bin/sh -- -c \
@@ -320,7 +419,11 @@ $ kubectl -n wardle exec -it $(kubectl -n wardle get po -l app=wardle-apiserver 
 {"kind":"Flunder","apiVersion":"wardle.k8s.io/v1alpha1","metadata":{"name":"my-first-flunder","uid":"8e4e1029-0c14-11e7-928a-def758206707","creationTimestamp":"2017-03-18T19:53:28Z","labels":{"sample-label":"true"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"wardle.k8s.io/v1alpha1\",\"kind\":\"Flunder\",\"metadata\":{\"annotations\":{},\"labels\":{\"sample-label\":\"true\"},\"name\":\"my-first-flunder\",\"namespace\":\"default\"}}\n"}},"spec":{},"status":{}}
 ```
 
+Conclusion, the Flunder object we created was saved in the separate etcd instance!
+
 ### Deploying the Prometheus Operator for monitoring Services in the cluster
+
+[Prometheus](prometheus.io) is a great monitoring solution, and combining it with Kubernetes makes it even more awesome!
 
 ```console
 $ kubectl apply -f demos/monitoring/prometheus-operator.yaml
@@ -374,3 +477,7 @@ service "my-nginx" created
 $ kubectl apply -f demos/monitoring/sample-hpa.yaml
 horizontalpodautoscaler "my-hpa" created
 ```
+
+### Acknowledgements / More reference
+
+Some people that helped me 
