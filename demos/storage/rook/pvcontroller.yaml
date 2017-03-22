@@ -33,7 +33,7 @@ spec:
       serviceAccountName: persistent-volume-binder
       containers:
       - name: pv-controller-manager
-        image: luxas/storage-controller-manager-amd64:v1.6.0-beta.4
+        image: luxas/storage-controller-manager:v1.6.0-beta.4
         command:
         - kube-controller-manager
         - --leader-elect=false
