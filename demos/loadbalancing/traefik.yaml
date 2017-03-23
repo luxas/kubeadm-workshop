@@ -20,7 +20,7 @@ spec:
         ingress-controller: "true"
       serviceAccountName: traefik-ingress-controller
       containers:
-      - image: luxas/traefik:v1.2.0-rc2
+      - image: luxas/traefik:v1.2.0
         name: traefik-ingress-controller
         resources:
           limits:
