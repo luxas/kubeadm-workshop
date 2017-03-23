@@ -21,6 +21,7 @@ BASEIMAGE?=gcr.io/google-containers/debian-iptables-$(ARCH):v7
 
 $(TEMP_DIR)/hyperkube: ./kubernetes
 	cd kubernetes \
+		&& git status -s | awk '{print $$2}' | xargs rm -rf \
 		&& git reset --hard HEAD \
 		&& patch -p1 < ../apiregistration.patch \
 		&& build/run.sh /bin/bash -c "KUBE_BUILD_PLATFORMS=linux/$(ARCH) make WHAT=cmd/hyperkube" \
