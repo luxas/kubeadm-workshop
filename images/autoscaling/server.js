@@ -9,7 +9,7 @@ http.createServer(function(request, response) {
   response.writeHead(200);
 
   if (request.url == "/metrics") {
-    response.end("# HELP http_requests_total The amount of requests served by the server in total\nTYPE http_requests_total counter\nhttp_requests_total " + totalrequests + "\n");
+    response.end("# HELP http_requests_total The amount of requests served by the server in total\n# TYPE http_requests_total counter\nhttp_requests_total " + totalrequests + "\n");
     return;
   }
   response.end("Hello! My name is " + os.hostname() + ". I have served "+ totalrequests + " requests so far.\n");
