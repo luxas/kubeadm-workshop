@@ -1,5 +1,5 @@
 REGISTRY?=luxas
-IMAGE?=sample-apiserver
+IMAGE?=custom-metrics-server
 TEMP_DIR:=$(shell mktemp -d)
 ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
