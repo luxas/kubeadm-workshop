@@ -174,7 +174,10 @@ You should now see some Services in the `kube-system` namespace:
 
 ```console
 $ kubectl -n kube-system get svc
-TODO
+NAME                   CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+heapster               10.104.142.79   <none>        80/TCP          5s
+kube-dns               10.96.0.10      <none>        53/UDP,53/TCP   42s
+kubernetes-dashboard   10.97.73.205    <none>        80/TCP          11s
 ```
 
 After `heapster` is up and running (check with `kubectl -n kube-system get pods`), you should be able to see the 
@@ -182,7 +185,8 @@ CPU and memory usage of the nodes in the cluster and for individual Pods:
 
 ```console
 $ kubectl top nodes
-TODO
+NAME        CPU(cores)   CPU%      MEMORY(bytes)   MEMORY%
+rook-test   131m         1%        9130Mi          30%
 ```
 
 ### Deploying an Ingress Controller for exposing HTTP services
@@ -247,7 +251,7 @@ The Traefik Ingress Controller is set up to require basic auth before one can ac
 I've set the username to `kubernetes` and the password to `rocks!`. You can obviously change this if you want by editing the `traefik-common.yaml` before deploying
 the Ingress Controller.
 
-When you've signed in, you'll see a dashboard like this:
+When you've signed in to `https://{ngrok url}/dashboard/` (note the `/` in the end, it's required), you'll see a dashboard like this:
 
 [Image](#TODO)
 
@@ -278,8 +282,7 @@ deployment "pv-controller-manager" created
 $ kubectl apply -f demos/storage/rook/cluster.yaml
 cluster "my-rook" created
 
-$ export MONS=$(kubectl -n rook get pod mon0 mon1 mon2 -o json|jq ".items[].status.podIP"|tr -d "\""|sed -e 's/$/:6790/'|paste -s -d, -)
-$ echo $MONS
+$ export MONS=$(kubectl -n rook get pod mon0 mon1 mon2 -o json|jq ".items[].status.podIP"|tr -d "\""|sed -e 's/$/:6790/'|paste -s -d, -); echo $MONS
 10.32.0.17:6790,10.32.0.18:6790,10.32.0.19:6790
 $ sed 's#INSERT_HERE#'$MONS'#' demos/storage/rook/storageclass.yaml | kubectl apply -f -
 storageclass "rook-block" created
@@ -423,7 +426,7 @@ Conclusion, the Flunder object we created was saved in the separate etcd instanc
 
 ### Deploying the Prometheus Operator for monitoring Services in the cluster
 
-[Prometheus](prometheus.io) is a great monitoring solution, and combining it with Kubernetes makes it even more awesome!
+[Prometheus](prometheus.io) is a great monitoring solution, and combining it with Kubernetes makes it even more awesome.
 
 ```console
 $ kubectl apply -f demos/monitoring/prometheus-operator.yaml
