@@ -428,6 +428,16 @@ Conclusion, the Flunder object we created was saved in the separate etcd instanc
 
 [Prometheus](prometheus.io) is a great monitoring solution, and combining it with Kubernetes makes it even more awesome.
 
+These commands will first deploy the [Prometheus operator](#TODO) as well as one Prometheus instance by creating a `Prometheus`
+ThirdPartyResource.
+
+A lightweight nodejs application is deployed as well, which exports the `http_requests_total` metric at `/metrics`.
+A `ServiceMonitor` ThirdPartyResource is created that match the sample metrics app by the `app=sample-metrics-app` label.
+
+The ServiceMonitor will make the Prometheus instance scrape metrics from the sample metrics web app.
+
+You can access the Prometheus web UI via the NodePort or the internal Service.
+
 ```console
 $ kubectl apply -f demos/monitoring/prometheus-operator.yaml
 clusterrole "prometheus-operator" created
@@ -456,6 +466,20 @@ sample-metrics-prom   10.108.71.184   <nodes>       9090:30999/TCP   4m
 
 ### Deploying a custom metrics API Server
 
+In v1.6, the Horizontal Pod Autoscaler controller can now consume custom metrics for autoscaling.
+For this to work, one needs to have enabled the `autoscaling/v2alpha1` API group which makes it possible
+to create Horizontal Pod Autoscaler resources of the new version.
+
+Also, one must have API aggregation enabled (which is the case in this demo) and a extension API Server that
+provides the `custom-metrics.metrics.k8s.io/v1alpha1` API group/version.
+
+There won't be an "official" one-size-fits all custom metrics API server, instead there will be a boilerplate
+people can use as the base for creating custom monitoring solutions.
+
+I've built an example custom metrics server that queries a Prometheus instance for metrics data and exposing them
+in the custom metrics Kubernetes API. You can think of this custom metrics server as a shim/conversation layer between
+Prometheus data and the Horizontal Pod Autoscaling API for Kubernetes. 
+
 ```console
 $ kubectl apply -f demos/monitoring/custom-metrics.yaml
 namespace "custom-metrics" created
@@ -479,8 +503,56 @@ service "my-nginx" created
 
 $ kubectl apply -f demos/monitoring/sample-hpa.yaml
 horizontalpodautoscaler "my-hpa" created
+
+$ ab -n 10000 -c 1000 $(kubectl get svc my-nginx -o template --template {{.spec.clusterIP}})/
 ```
+
+### Manifest list images
+
+All the source for building the images used in this demo is available under `images/`.
+
+You simply need to cd into the directory and run `REGISTRY=foo make push`, setting the `REGISTRY`
+variable to your Docker Hub account for example, where you have push rights.
+
+All pushed images follow the pattern `REGISTRY/IMAGE-ARCH:VERSION` plus a manifest list of the form
+`REGISTRY/IMAGE:VERSION` that references to the architecture-specific images.
+
+Currently, images are pushed for `amd64`, `arm` and `arm64`.
 
 ### Acknowledgements / More reference
 
-Some people that helped me 
+I'd like to thank some people that have been very helpful to me while putting together this workshop.
+
+**David Eads** ([@deads2k](https://github.com/deads2k)) has been very helpful to me and answered my questions about API aggregation.
+He also wrote the patch for linking the kube-aggregator into kube-apiserver, and I've cherry-picked that patch to this demo env.
+
+**Sally Ross** ([@DirectXMan12](https://github.com/DirectXMan12)) has worked on the custom metrics API and helped me quickly understand
+the essential parts of it. He also uploaded a [custom metrics API Server boilerplate](https://github.com/DirectXMan12/custom-metrics-boilerplate)
+which I've used as the base for my custom metrics implementation.
+
+Also, these I want to thank the maintainers of the great projects below. Let's be grateful for all the
+really nice projects that are open sourced on Github.
+
+**Prometheus Operator by CoreOS**: The Prometheus is an integral part of the custom metrics service in
+this workshop, it made it super-easy to create managed Prometheus instances with the TPR!
+
+**Prometheus by CNCF**: Some projects are just rock-solid. The Prometheus core is such a project.
+Monitoring made available for everyone, simply.
+
+**Rook by Quantum**: Rook is a very interesting and promising project and I'm excited to see how this
+project can be brought into something stable and reliable in the future.
+
+**Traefik by Containeous??**: Traefik is a powerful loadbalancer, and I love the Kubernetes integration it has.
+Also, with the Prometheus exporter integration in v1.2, it got even cooler.
+
+**Weave by Weaveworks**: Weave is a distributed networking system that plays very well with Kubernetes, it also
+is CNI-compliant, which is a good thing.
+
+
+### Future work / contributing
+
+This workshop uses my own custom-built images under the `luxas` Docker Hub user.
+This is only a temporary solution while I carry patches I had to make in order to get it working,
+I will work to upstream these changes eventually though.
+
+Feel free to contribute and help me improve things here and I'd be very thankful ;)
