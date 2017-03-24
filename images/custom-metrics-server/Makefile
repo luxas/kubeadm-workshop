@@ -5,7 +5,7 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v0.2.0
+VERSION?=v0.2.1
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
