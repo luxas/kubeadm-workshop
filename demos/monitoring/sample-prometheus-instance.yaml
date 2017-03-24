@@ -75,6 +75,25 @@ spec:
   endpoints:
   - port: web
 ---
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2alpha1
+metadata:
+  name: sample-metrics-app-hpa
+spec:
+  scaleTargetRef:
+    kind: Deployment
+    name: sample-metrics-app
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Object
+    object:
+      target:
+        kind: Service
+        name: sample-metrics-app
+      metricName: http_requests_total
+      targetValue: 100
+---
 apiVersion: monitoring.coreos.com/v1alpha1
 kind: Prometheus
 metadata:
