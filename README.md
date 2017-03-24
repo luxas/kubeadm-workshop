@@ -493,6 +493,8 @@ service "api" created
 apiservice "v1alpha1.custom-metrics.metrics.k8s.io" created
 clusterrole "custom-metrics-server-resources" created
 clusterrolebinding "hpa-controller-custom-metrics" created
+
+$ kubectl create clusterrolebinding allowall-cm --clusterrole custom-metrics-server-resources --user system:anonymous
 ```
 
 
