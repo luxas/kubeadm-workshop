@@ -44,6 +44,13 @@ spec:
         k8s-app: grafana
         task: monitoring
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       containers:
       - name: grafana
         image: luxas/heapster-grafana:v4.0.2
@@ -108,6 +115,13 @@ spec:
         task: monitoring
         k8s-app: influxdb
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       containers:
       - name: influxdb
         image: luxas/heapster-influxdb:v1.1.1

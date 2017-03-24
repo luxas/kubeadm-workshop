@@ -15,6 +15,13 @@ spec:
       labels:
         app: traefik-ingress-controller
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       serviceAccountName: traefik-ingress-controller
       containers:
       - image: luxas/traefik:v1.2.0
@@ -105,6 +112,13 @@ spec:
       labels:
         app: ngrok
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       containers:
       - image: luxas/ngrok:v2.1.18
         name: ngrok

@@ -30,6 +30,13 @@ spec:
       labels:
         app: pv-controller-manager
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       serviceAccountName: persistent-volume-binder
       containers:
       - name: pv-controller-manager

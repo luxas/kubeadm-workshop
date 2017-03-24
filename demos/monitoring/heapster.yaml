@@ -33,6 +33,13 @@ spec:
         k8s-app: heapster
         task: monitoring
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       serviceAccountName: heapster
       containers:
       - name: heapster
