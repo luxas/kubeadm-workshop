@@ -5,7 +5,7 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v0.1.0
+VERSION?=v0.2.0
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
@@ -23,7 +23,7 @@ build:
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 
 	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.7 /bin/bash -c "\
-		git clone https://github.com/luxas/custom-metrics-boilerplate /go/src/k8s.io/custom-metrics-boilerplate && \
+		git clone https://github.com/luxas/custom-metrics-boilerplate -b add_prometheus_provider /go/src/k8s.io/custom-metrics-boilerplate && \
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/custom-metrics-server k8s.io/custom-metrics-boilerplate"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
