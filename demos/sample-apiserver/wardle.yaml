@@ -64,10 +64,17 @@ spec:
       labels:
         app: wardle-apiserver
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       serviceAccountName: apiserver
       containers:
       - name: wardle-server
-        image: deads2k/kube-sample-apiserver
+        image: luxas/sample-apiserver:v0.1.0
         args:
         - --etcd-servers=http://localhost:2379
       - name: etcd
