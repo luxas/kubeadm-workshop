@@ -97,14 +97,14 @@ A brief walkthrough what the statements mean:
    - since the `persistentvolume-binder` exec's out to an `rbd` binary and that binary is unavailable in the official controller-manager image
      combined with the fact that this is a `rook`-specific thing, it's better to run the `persistentvolume-binder` controller in a separately
      maintained image which has the `rbd` binary included.
- - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for [custom metrics](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
+ - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for the [custom metrics API](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
  - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
  - `proxy-client-cert-file/proxy-client-key-file` set the cert/key pair for the API Server when it's talking to the built-in aggregated API Server.
 
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop-2 kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-rc.1-PR42911 kubeadm init --config kubeadm.yaml
 ```
 
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
@@ -519,21 +519,76 @@ run this `kubectl` command:
 
 ```console
 $ kubectl create clusterrolebinding allowall-cm --clusterrole custom-metrics-server-resources --user system:anonymous
+clusterrolebinding "allowall-cm" created
 ```
 
-```
-$ export CM_API=$(kubectl -n custom-metrics get svc api -o template --template {{.spec.clusterIP}})
-$ 
-```
-
-```
+```console
 $ kubectl apply -f demos/monitoring/sample-metrics-app.yaml
 deployment "sample-metrics-app" created
 service "sample-metrics-app" created
 servicemonitor "sample-metrics-app" created
-TODO
+horizontalpodautoscaler "sample-metrics-app-hpa" created
+ingress "sample-metrics-app" created
 
 $ ab -n 10000 -c 1000 $(kubectl get svc sample-metrics-app -o template --template {{.spec.clusterIP}})/
+```
+
+```console
+$ export CM_API=$(kubectl -n custom-metrics get svc api -o template --template {{.spec.clusterIP}}); echo $CM_API
+$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1
+TODO
+
+$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metrics-app/http_requests_total
+{
+  "kind": "MetricValueList",
+  "apiVersion": "custom-metrics.metrics.k8s.io/v1alpha1",
+  "metadata": {},
+  "items": [
+    {
+      "describedObject": {
+        "kind": "Service",
+        "namespace": "default",
+        "name": "sample-metrics-app",
+        "apiVersion": "/__internal"
+      },
+      "metricName": "http_requests_total",
+      "timestamp": "2017-03-25T13:37:25Z",
+      "window": 60,
+      "value": "66m"
+    }
+  ]
+}
+```
+
+```console
+$ kubectl get po
+NAME                                   READY     STATUS    RESTARTS   AGE
+prometheus-operator-1505754769-vm60d   1/1       Running   0          9m
+prometheus-sample-metrics-prom-0       2/2       Running   0          7m
+rook-operator-1533318199-1qdf1         1/1       Running   0          13m
+sample-metrics-app-2440858958-cx8r8    1/1       Running   0          5m
+sample-metrics-app-2440858958-q6qc3    1/1       Running   0          5m
+
+$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/pods/sample-metrics-app-2440858958-cx8r8/http_requests_total
+{
+  "kind": "MetricValueList",
+  "apiVersion": "custom-metrics.metrics.k8s.io/v1alpha1",
+  "metadata": {},
+  "items": [
+    {
+      "describedObject": {
+        "kind": "Pod",
+        "namespace": "default",
+        "name": "sample-metrics-app-2440858958-cx8r8",
+        "apiVersion": "/__internal"
+      },
+      "metricName": "http_requests_total",
+      "timestamp": "2017-03-25T13:42:01Z",
+      "window": 60,
+      "value": "33m"
+    }
+  ]
+}
 ```
 
 ### Manifest list images
