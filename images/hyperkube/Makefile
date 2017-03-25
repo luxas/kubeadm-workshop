@@ -1,6 +1,6 @@
 REGISTRY?=luxas
 IMAGE?=hyperkube
-VERSION?=v1.6.0-kubeadm-workshop
+VERSION?=v1.6.0-rc.1-PR42911
 ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
