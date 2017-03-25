@@ -47,7 +47,7 @@ This workshop is divided into these parts:
 
 **Note:** It's expected that you have basic knowledge about how Kubernetes and kubeadm work, because quite advanced concepts are covered in this workshop.
 
-**Note:** This guide has been tested on Ubuntu Xenial and Yakkety, and 
+**Note:** This guide has been tested on Ubuntu Xenial and Yakkety
 
 You can install kubeadm easily this way:
 
@@ -79,7 +79,7 @@ apiVersion: kubeadm.k8s.io/v1alpha1
 networking:
   podSubnet: "10.244.0.0/16"
 controllerManagerExtraArgs:
-  controllers: "*,-persistentvolume-binder"
+  controllers: "*,-persistentvolume-binder,bootstrapsigner,tokencleaner"
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
@@ -93,8 +93,8 @@ selfHosted: true
 
 A brief walkthrough what the statements mean:
  - `podSubnet: "10.244.0.0/16"` makes `kube-proxy` aware of which packets are internal and external
- - `controllers: "*,-persistentvolume-binder"` disables the `persistentvolume-binder` controller
-   - since the ``persistentvolume-binder`` exec's out to an `rbd` binary and that binary is unavailable in the official controller-manager image
+ - `controllers: "*,-persistentvolume-binder,bootstrapsigner,tokencleaner"` disables the `persistentvolume-binder` controller
+   - since the `persistentvolume-binder` exec's out to an `rbd` binary and that binary is unavailable in the official controller-manager image
      combined with the fact that this is a `rook`-specific thing, it's better to run the `persistentvolume-binder` controller in a separately
      maintained image which has the `rbd` binary included.
  - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for [custom metrics](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
@@ -104,7 +104,7 @@ A brief walkthrough what the statements mean:
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop-2 kubeadm init --config kubeadm.yaml
 ```
 
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
@@ -129,20 +129,40 @@ Here's how to use Weave Net as the networking provider:
 $ kubectl apply -f https://git.io/weave-kube-1.6
 ```
 
-#### Untainting the master node
+### Setting up the worker nodes
 
-In case you only have one node available for testing and want to run normal workloads on the master as well, run this command:
+`kubeadm init` above will print out a `kubeadm join` command for you to paste for joining the other nodes in your cluster to the master.
+
+**Note:** Make sure you join all nodes before you arch-taint the nodes (if you do)!
+
+```console
+$ kubeadm join --token <token> <master-ip>:<master-port>
+```
+
+#### Taints and tolerations
+
+[`Taints and Tolerations`](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/taint-toleration-dedicated.md)
+is a concept of dedicated nodes. Simply put, if you taint a node with a key/value pair and the effect `NoSchedule`, it will reject all Pods
+that don't have the same key/value set in the `Tolerations` field of the `PodSpec`.
+
+By default, the master is tainted with the `node-role.kubernetes.io=""` key/value pair which will make it only allow the `kube-dns` Deployment,
+the `kube-proxy` DaemonSet and most often the CNI network provider's DaemonSet, because they have the toleration.
+
+In case you only have one node available for testing and want to run normal workloads on the master as well (allow all workloads on the master),
+run this command:
 
 ```console
 $ kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
 
-### Setting up the worker nodes
+In order to make the default architecture `amd64`, and you know you might deploy workloads that aren't multi-platform, it's best to taint the
+"special" nodes of an other architecture and explicitely tolerate ARM (32- and 64-bit) on the workloads that support it.
 
-`kubeadm init` above will print out a `kubeadm join` command for you to paste for joining the other nodes in your cluster to the master.
+You can taint your arm and arm64 nodes with these commands:
 
 ```console
-$ kubeadm join --token <token> <master-ip>:<master-port>
+$ kubectl taint node <arm nodes> beta.kubernetes.io/arch=arm:NoSchedule
+$ kubectl taint node <arm64 nodes> beta.kubernetes.io/arch=arm64:NoSchedule
 ```
 
 ### Deploying the Dashboard and Heapster
@@ -186,7 +206,7 @@ CPU and memory usage of the nodes in the cluster and for individual Pods:
 ```console
 $ kubectl top nodes
 NAME        CPU(cores)   CPU%      MEMORY(bytes)   MEMORY%
-rook-test   131m         1%        9130Mi          30%
+test-node   131m         1%        9130Mi          30%
 ```
 
 ### Deploying an Ingress Controller for exposing HTTP services
@@ -262,7 +282,8 @@ Stateless services are cool, but deploying stateful applications on your Kuberne
 For that you need somewhere to store persistent data, and that's not easy to achieve on bare metal. [Rook](https://github.com/rook/rook) is a promising project
 aiming to solve this by building a Kubernetes integration layer upon the battle-tested Ceph storage solution.
 
-Rook is using `ThirdPartyResources` for knowing how to set up your storage solution, and has an [operator](#TODO) that is listening for these TPRs.
+Rook is using `ThirdPartyResources` for knowing how to set up your storage solution, and has an [operator](https://github.com/rook/rook/tree/master/cmd/rook-operator)
+that is listening for these TPRs.
 
 Here is how to create a default Rook cluster by deploying the operator, a controller that will listen for PersistentVolumeClaims that need binding, a Rook Cluster
 ThirdPartyResource and finally a StorageClass.
@@ -324,7 +345,7 @@ This is possible, a lot of work has been put into this and this feature will pro
 out easily already. The reason I'm using my own `hyperkube` image for this demo is two-fold:
 
 1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
-2) It contains vanilla v1.6 Kubernetes + [this patch](#TODO) that makes it possible to register extended API Servers smoothly.
+2) It contains vanilla v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) that makes it possible to register extended API Servers smoothly.
 
 First, let's check which API groups are available in v1.6:
 
@@ -428,7 +449,7 @@ Conclusion, the Flunder object we created was saved in the separate etcd instanc
 
 [Prometheus](prometheus.io) is a great monitoring solution, and combining it with Kubernetes makes it even more awesome.
 
-These commands will first deploy the [Prometheus operator](#TODO) as well as one Prometheus instance by creating a `Prometheus`
+These commands will first deploy the [Prometheus operator](https://github.com/coreos/prometheus-operator) as well as one Prometheus instance by creating a `Prometheus`
 ThirdPartyResource.
 
 A lightweight nodejs application is deployed as well, which exports the `http_requests_total` metric at `/metrics`.
@@ -449,9 +470,6 @@ $ kubectl apply -f demos/monitoring/sample-prometheus-instance.yaml
 clusterrole "prometheus" created
 serviceaccount "prometheus" created
 clusterrolebinding "prometheus" created
-deployment "sample-metrics-app" created
-service "sample-metrics-app" created
-servicemonitor "sample-metrics-app" created
 prometheus "sample-metrics-prom" created
 service "sample-metrics-prom" created
 
@@ -459,12 +477,11 @@ $ kubectl get svc
 NAME                  CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
 kubernetes            10.96.0.1       <none>        443/TCP          30m
 prometheus-operated   None            <none>        9090/TCP         4m
-sample-metrics-app    10.108.65.91    <none>        8080/TCP         4m
 sample-metrics-prom   10.108.71.184   <nodes>       9090:30999/TCP   4m
 ```
 
 
-### Deploying a custom metrics API Server
+### Deploying a custom metrics API Server and a sample app
 
 In v1.6, the Horizontal Pod Autoscaler controller can now consume custom metrics for autoscaling.
 For this to work, one needs to have enabled the `autoscaling/v2alpha1` API group which makes it possible
@@ -478,7 +495,9 @@ people can use as the base for creating custom monitoring solutions.
 
 I've built an example custom metrics server that queries a Prometheus instance for metrics data and exposing them
 in the custom metrics Kubernetes API. You can think of this custom metrics server as a shim/conversation layer between
-Prometheus data and the Horizontal Pod Autoscaling API for Kubernetes. 
+Prometheus data and the Horizontal Pod Autoscaling API for Kubernetes.
+
+You can also read the full custom metrics API proposal [here](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
 
 ```console
 $ kubectl apply -f demos/monitoring/custom-metrics.yaml
@@ -493,20 +512,28 @@ service "api" created
 apiservice "v1alpha1.custom-metrics.metrics.k8s.io" created
 clusterrole "custom-metrics-server-resources" created
 clusterrolebinding "hpa-controller-custom-metrics" created
+```
 
+If you want to be able to `curl` the custom metrics API server easily (i.e. allow anyone to access the API), you can
+run this `kubectl` command:
+
+```console
 $ kubectl create clusterrolebinding allowall-cm --clusterrole custom-metrics-server-resources --user system:anonymous
 ```
 
+```
+$ export CM_API=$(kubectl -n custom-metrics get svc api -o template --template {{.spec.clusterIP}})
+$ 
+```
 
-```console
-$ kubectl apply -f demos/sample-webservice/nginx.yaml
-deployment "my-nginx" created
-service "my-nginx" created
+```
+$ kubectl apply -f demos/monitoring/sample-metrics-app.yaml
+deployment "sample-metrics-app" created
+service "sample-metrics-app" created
+servicemonitor "sample-metrics-app" created
+TODO
 
-$ kubectl apply -f demos/monitoring/sample-hpa.yaml
-horizontalpodautoscaler "my-hpa" created
-
-$ ab -n 10000 -c 1000 $(kubectl get svc my-nginx -o template --template {{.spec.clusterIP}})/
+$ ab -n 10000 -c 1000 $(kubectl get svc sample-metrics-app -o template --template {{.spec.clusterIP}})/
 ```
 
 ### Manifest list images
@@ -544,7 +571,7 @@ Monitoring made available for everyone, simply.
 **Rook by Quantum**: Rook is a very interesting and promising project and I'm excited to see how this
 project can be brought into something stable and reliable in the future.
 
-**Traefik by Containeous??**: Traefik is a powerful loadbalancer, and I love the Kubernetes integration it has.
+**Traefik by Containous**: Traefik is a powerful loadbalancer, and I love the Kubernetes integration it has.
 Also, with the Prometheus exporter integration in v1.2, it got even cooler.
 
 **Weave by Weaveworks**: Weave is a distributed networking system that plays very well with Kubernetes, it also
