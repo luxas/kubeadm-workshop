@@ -247,11 +247,12 @@ $ curl -sSL $(kubectl -n kube-system get svc ngrok -o template --template "{{.sp
 https://foobarxyz.ngrok.io
 ```
 
-You can now try to access the ngrok URL that got outputted by the above command. It should look like this:
+You can now try to access the ngrok URL that got outputted by the above command. It first ask you for a password, then return 404 due to the absence of Ingress
+rules.
 
-[Image](#TODO)
+![Authenticate to Traefik](pictures/basicauth.png)
 
-However, since we have no Ingress rules, Traefik just returns 404.
+![404 with no Ingress rules](pictures/404-traefik.png)
 
 Let's change that by creating an Ingress rule!
 
@@ -273,7 +274,7 @@ the Ingress Controller.
 
 When you've signed in to `https://{ngrok url}/dashboard/` (note the `/` in the end, it's required), you'll see a dashboard like this:
 
-[Image](#TODO)
+![The Kubernetes Dashboard](pictures/dashboard.png)
 
 ### Deploying a persistent storage layer on top of Kubernetes with Rook
 
@@ -334,7 +335,9 @@ service "monitoring-influxdb" created
 ingress "monitoring-grafana" created
 ```
 
-Note that an Ingress rule was created for Grafana automatically. You can access your Grafana instance at the `https://{ngrok url}/grafana` URL.
+Note that an Ingress rule was created for Grafana automatically. You can access your Grafana instance at the `https://{ngrok url}/grafana/` URL.
+
+![Grafana dashboard](pictures/grafana.png)
 
 ### Sample API Server
 
