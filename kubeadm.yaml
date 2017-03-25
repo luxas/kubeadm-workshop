@@ -3,7 +3,7 @@ apiVersion: kubeadm.k8s.io/v1alpha1
 networking:
   podSubnet: "10.244.0.0/16"
 controllerManagerExtraArgs:
-  controllers: "*,-persistentvolume-binder"
+  controllers: "*,-persistentvolume-binder,bootstrapsigner,tokencleaner"
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
