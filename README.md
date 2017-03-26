@@ -118,6 +118,11 @@ export KUBECONFIG=$HOME/admin.conf
 
 `KUBE_HYPERKUBE_IMAGE` is an alpha feature of kubeadm and will be an option in the config file in future versions of kubeadm.
 
+The reason I'm using my own `hyperkube` image for this demo is two-fold:
+
+1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
+2) It contains vanilla v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) that makes it possible to register extended API Servers smoothly.
+
 #### Deploying the Pod networking layer
 
 The networking layer in Kubernetes is extensible, and you may pick the networking solution that fits you the best.
@@ -345,10 +350,7 @@ The core API Server is great, but what about if you want to write your own, exte
 but still be able to control those high-level features from kubectl?
 
 This is possible, a lot of work has been put into this and this feature will probably be ready in Kubernetes v1.7. If you can't wait, like me, you can test this flow 
-out easily already. The reason I'm using my own `hyperkube` image for this demo is two-fold:
-
-1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
-2) It contains vanilla v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) that makes it possible to register extended API Servers smoothly.
+out easily already by using my patched `hyperkube` binary (which you probably do at this point).
 
 First, let's check which API groups are available in v1.6:
 
