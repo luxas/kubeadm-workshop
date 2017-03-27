@@ -18,7 +18,7 @@ My own setup at home consists of this hardware:
  - 2x Odroid C2, 4 cores @ 1.5 GHz, 2 GB RAM, 1 GbE, 16 GB eMMc, arm64, [Link](http://www.hardkernel.com/main/products/prdt_info.php)
  - 3x Raspberry Pi, 4 cores @ 1.2 GHz, 1 GB RAM, 100 MbE, 16 GB SD Card, arm/arm64, [Link](https://www.raspberrypi.org/products/raspberry-pi-3-model-b/)
 
-[Picture](#TODO)
+![Picture of the cluster](pictures/cluster.jpg)
 
 So, no more smalltalk then, let's dive right in!
 
