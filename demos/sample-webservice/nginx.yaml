@@ -14,6 +14,13 @@ spec:
       labels:
         run: my-nginx
     spec:
+      tolerations:
+      - key: beta.kubernetes.io/arch
+        value: arm
+        effect: NoSchedule
+      - key: beta.kubernetes.io/arch
+        value: arm64
+        effect: NoSchedule
       containers:
       - image: luxas/nginx:1.11.10
         name: my-nginx
