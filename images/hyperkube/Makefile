@@ -1,6 +1,7 @@
 REGISTRY?=luxas
 IMAGE?=hyperkube
-VERSION?=v1.6.0-rc.1-PR42911
+VERSION?=v1.6.0-and-PR-42911
+COMMIT=b705835bae42925e0f9ed2a1fcf22d1d6b1dc680
 ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
@@ -21,9 +22,7 @@ BASEIMAGE?=gcr.io/google-containers/debian-iptables-$(ARCH):v7
 
 $(TEMP_DIR)/hyperkube: ./kubernetes
 	cd kubernetes \
-		&& git status -s | awk '{print $$2}' | xargs rm -rf \
-		&& git reset --hard HEAD \
-		&& patch -p1 < ../apiregistration.patch \
+		&& git checkout $(COMMIT) \
 		&& build/run.sh /bin/bash -c "KUBE_BUILD_PLATFORMS=linux/$(ARCH) make WHAT=cmd/hyperkube" \
 		&& cp _output/dockerized/bin/linux/$(ARCH)/hyperkube $(TEMP_DIR)
 
