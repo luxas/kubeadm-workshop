@@ -34,9 +34,10 @@ This workshop is divided into these parts:
 * Deploying an Ingress Controller for exposing HTTP services
 * Deploying a persistent storage layer on top of Kubernetes with Rook
 * Deploying InfluxDB and Grafana for storing and visualizing CPU and memory metrics
-* Deploying a sample Wordpress service with a MariaDB backend using `helm`
 * Deploying a extension API Server for extending the Kubernetes API
-* Deploying the Prometheus Operator for monitoring Services in the cluster
+* Deploying the Prometheus Operator for monitoring Pods in the cluster
+* Deploying a sample custom metrics API Server
+* Deploying and autoscaling a sample node.js application based on custom metrics
 
 ### Installing kubeadm on all the machines you want in your cluster
 
@@ -104,7 +105,7 @@ A brief walkthrough what the statements mean:
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-rc.1-PR42911 kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-and-PR-42911 kubeadm init --config kubeadm.yaml
 ```
 
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
@@ -121,7 +122,7 @@ export KUBECONFIG=$HOME/admin.conf
 The reason I'm using my own `hyperkube` image for this demo is two-fold:
 
 1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
-2) It contains vanilla v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) that makes it possible to register extended API Servers smoothly.
+2) It contains ~v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) (commit [b705835bae42925e0f9ed2a1fcf22d1d6b1dc680](https://github.com/kubernetes/kubernetes/tree/b705835bae42925e0f9ed2a1fcf22d1d6b1dc680) in order to be exact) that makes it possible to register extended API Servers smoothly.
 
 #### Deploying the Pod networking layer
 
@@ -645,3 +646,9 @@ This is only a temporary solution while I carry patches I had to make in order t
 I will work to upstream these changes eventually though.
 
 Feel free to contribute and help me improve things here and I'd be very thankful ;)
+
+I use the Github tracker for tracking the improvements I want to make to this repository
+
+### License
+
+MIT
