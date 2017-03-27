@@ -649,6 +649,10 @@ Feel free to contribute and help me improve things here and I'd be very thankful
 
 I use the Github tracker for tracking the improvements I want to make to this repository
 
+### Known Issues
+
+* The cluster will not survive a reboot: This is due to how self-hosting is implemented in kubeadm at the time. Basically there is no checkpointer, so when kubelet comes up the 2nd time, it does not know what to run - it will try to get that information from the API, which is waiting for kubelet to start it.
+
 ### License
 
 MIT
