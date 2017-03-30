@@ -105,7 +105,7 @@ A brief walkthrough what the statements mean:
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-and-PR-42911 kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-rc.1-PR42911 kubeadm init --config kubeadm.yaml
 ```
 
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
