@@ -1,5 +1,5 @@
 apiVersion: rook.io/v1beta1
-kind: Cluster
+kind: Rookcluster
 metadata:
   name: my-rook
 spec:

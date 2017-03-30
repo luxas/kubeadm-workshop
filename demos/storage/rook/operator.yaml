@@ -11,11 +11,13 @@ rules:
   - pods
   - services
   - nodes
+  - configmaps
   verbs:
   - get
   - list
   - watch
   - create
+  - update
 - apiGroups:
   - extensions
   resources:
