@@ -55,7 +55,7 @@ You can install kubeadm easily this way:
 ```bash
 curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
 cat <<EOF > /etc/apt/sources.list.d/kubernetes.list
-deb http://apt.kubernetes.io/ kubernetes-xenial-unstable main
+deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 apt-get update
 apt-get install -y docker.io kubeadm
@@ -105,9 +105,10 @@ A brief walkthrough what the statements mean:
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-rc.1-PR42911 kubeadm init --config kubeadm.yaml
+$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop-2 kubeadm init --config kubeadm.yaml
 ```
 
+Make sure you got kubeadm v1.6.1 or higher and docker 1.12 or 1.13.
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
 Here is an example how to do it as a regular user.
 
