@@ -7,9 +7,14 @@ Hi and welcome to this tutorial and demonstration of how to build a bare-metal K
 I'm one of the main kubeadm developers and very excited about bare metal as well, 
 so I thought showing some of the things you can do with Kubernetes/kubeadm would be a great fit!
 
+This workshop is a part of my talk at KubeCon Berlin: [Autoscaling a Multi-Platform Kubernetes Cluster Built with kubeadm [I] - Lucas Käldström - YouTube](https://youtu.be/ZdzKQwMjg2w)
+
+My slides for the presentation are here: http://slides.com/lucask/kubecon-berlin
+
 ### Highligts
 
 * Showcases what you can do on bare-metal, even behind a firewall with no public IP address
+* Demonstrates usage of cutting-edge technologies like Persistent Storage running on-cluster, Autoscaling based on Custom Metrics and Aggregated API Servers
 
 What's more, the Kubernetes yaml manifests included in this repository are multi-architecture and works on ARM, both 32- and 64-bit!
 
@@ -42,13 +47,13 @@ This workshop is divided into these parts:
 ### Installing kubeadm on all the machines you want in your cluster
 
 > WARNING: This workshop uses alpha technologies in order to be on the edge and Kubernetes can't be upgraded.
-> This means the features used and demonstrated here might work differently in v1.7 and backwards-compability isn't guaranteed.
+> This means the features used and demonstrated here might work differently in v1.7 and backwards-compability isn't guaranteed in any way
 
 **Note:** The first part that describes how to install kubeadm is just copied from the [official kubeadm documentation](https://kubernetes.io/docs/getting-started-guides/kubeadm/)
 
 **Note:** It's expected that you have basic knowledge about how Kubernetes and kubeadm work, because quite advanced concepts are covered in this workshop.
 
-**Note:** This guide has been tested on Ubuntu Xenial and Yakkety
+**Note:** This guide has been tested on Ubuntu Xenial, Yakkety and Zesty
 
 You can install kubeadm easily this way:
 
@@ -77,10 +82,7 @@ The configuration file we'll use here looks like this in `kubeadm.yaml`:
 ```yaml
 kind: MasterConfiguration
 apiVersion: kubeadm.k8s.io/v1alpha1
-networking:
-  podSubnet: "10.244.0.0/16"
 controllerManagerExtraArgs:
-  controllers: "*,-persistentvolume-binder,bootstrapsigner,tokencleaner"
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
@@ -93,11 +95,6 @@ selfHosted: true
 ```
 
 A brief walkthrough what the statements mean:
- - `podSubnet: "10.244.0.0/16"` makes `kube-proxy` aware of which packets are internal and external
- - `controllers: "*,-persistentvolume-binder,bootstrapsigner,tokencleaner"` disables the `persistentvolume-binder` controller
-   - since the `persistentvolume-binder` exec's out to an `rbd` binary and that binary is unavailable in the official controller-manager image
-     combined with the fact that this is a `rook`-specific thing, it's better to run the `persistentvolume-binder` controller in a separately
-     maintained image which has the `rbd` binary included.
  - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for the [custom metrics API](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
  - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
  - `proxy-client-cert-file/proxy-client-key-file` set the cert/key pair for the API Server when it's talking to the built-in aggregated API Server.
@@ -297,24 +294,16 @@ Here is how to create a default Rook cluster by deploying the operator, a contro
 ThirdPartyResource and finally a StorageClass.
 
 ```console
-$ kubectl apply -f demos/storage/rook/operator.yaml
+$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-operator.yaml
 clusterrole "rook-operator" created
 serviceaccount "rook-operator" created
 clusterrolebinding "rook-operator" created
 deployment "rook-operator" created
 
-$ kubectl apply -f demos/storage/rook/pvcontroller.yaml
-serviceaccount "persistent-volume-binder" created
-clusterrolebinding "persistent-volume-binder" created
-deployment "pv-controller-manager" created
-
-$ kubectl apply -f demos/storage/rook/cluster.yaml
+$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-cluster.yaml
 cluster "my-rook" created
 
-$ export MONS=$(kubectl -n rook get pod mon0 mon1 mon2 -o json|jq ".items[].status.podIP"|tr -d "\""|sed -e 's/$/:6790/'|paste -s -d, -); echo $MONS
-10.32.0.17:6790,10.32.0.18:6790,10.32.0.19:6790
-$ sed 's#INSERT_HERE#'$MONS'#' demos/storage/rook/storageclass.yaml | kubectl apply -f -
-storageclass "rook-block" created
+$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-storageclass.yaml
 
 $ # Repeat this step for all namespaces you want to deploy PersistentVolumes with Rook in
 $ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n kube-system apply -f -
@@ -617,7 +606,7 @@ I'd like to thank some people that have been very helpful to me while putting to
 **David Eads** ([@deads2k](https://github.com/deads2k)) has been very helpful to me and answered my questions about API aggregation.
 He also wrote the patch for linking the kube-aggregator into kube-apiserver, and I've cherry-picked that patch to this demo env.
 
-**Sally Ross** ([@DirectXMan12](https://github.com/DirectXMan12)) has worked on the custom metrics API and helped me quickly understand
+**Solly Ross** ([@DirectXMan12](https://github.com/DirectXMan12)) has worked on the custom metrics API and helped me quickly understand
 the essential parts of it. He also uploaded a [custom metrics API Server boilerplate](https://github.com/DirectXMan12/custom-metrics-boilerplate)
 which I've used as the base for my custom metrics implementation.
 
