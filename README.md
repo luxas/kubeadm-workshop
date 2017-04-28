@@ -493,6 +493,10 @@ I've built an example custom metrics server that queries a Prometheus instance f
 in the custom metrics Kubernetes API. You can think of this custom metrics server as a shim/conversation layer between
 Prometheus data and the Horizontal Pod Autoscaling API for Kubernetes.
 
+Here is a diagram over how this works on a high level:
+
+![Custom Metrics Architecture](pictures/custom-metrics-architecture.png)
+
 You can also read the full custom metrics API proposal [here](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
 
 ```console
