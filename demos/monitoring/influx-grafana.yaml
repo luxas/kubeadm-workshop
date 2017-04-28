@@ -28,7 +28,7 @@ spec:
     requests:
       storage: 5Gi
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: monitoring-grafana
@@ -99,7 +99,7 @@ spec:
   selector:
     k8s-app: grafana
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
   name: monitoring-influxdb
