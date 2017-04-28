@@ -5,7 +5,8 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v0.1.0
+# sample-apiserver commit: a988d967bc315d39c09f4ea338db610c9871c4c0
+VERSION?=v0.1.1
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
@@ -27,7 +28,6 @@ build:
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/sample-apiserver k8s.io/sample-apiserver"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
-	rm -r $(TEMP_DIR)
 
 push-%:
 	$(MAKE) ARCH=$* build

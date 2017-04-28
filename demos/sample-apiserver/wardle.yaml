@@ -74,7 +74,7 @@ spec:
       serviceAccountName: apiserver
       containers:
       - name: wardle-server
-        image: luxas/sample-apiserver:v0.1.0
+        image: luxas/sample-apiserver:v0.1.1
         args:
         - --etcd-servers=http://localhost:2379
       - name: etcd
