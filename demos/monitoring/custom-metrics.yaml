@@ -114,7 +114,7 @@ metadata:
 spec:
   insecureSkipTLSVerify: true
   group: custom-metrics.metrics.k8s.io
-  priority: 100
+  priority: 150
   service:
     name: api
     namespace: custom-metrics
