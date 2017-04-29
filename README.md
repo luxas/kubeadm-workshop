@@ -631,9 +631,25 @@ $ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/names
 
 #### Install `helm`
 
+[Helm](https://github.com/kubernetes/helm) is a package manager for applications running on top of Kubernetes.
+You can read more about Helm in the official repository, for now we're just gonna install it.
+
+Below you'll see the famous `curl | bash` pattern for installing an application, and yes, I know it's discouraged.
+But I'm doing it this way here to keep the tutorial short and concise, hardening the helm installation is left as an excercise to the user.
+
+Then we're running `helm init` that will deploy its server side component and set up local cache at `~/.helm`. Make sure the `KUBECONFIG`
+environment variable is set to point to the kubeconfig file for your kubeadm cluster.
+
 ```console
 $ curl -sSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+$ helm init
 ```
+
+`tiller` is the server-side component of the Helm ecosystem, and handles installation, upgrades and more.
+By default in version v2.3.x, `helm init` installs tiller without any RBAC privileges. This means tiller won't be able to install any apps unless
+we give it some RBAC permissions. However, knowing what `tiller` is gonna install for the user in beforehand is very hard, so the only way to make it
+work in all cases is to give it full privileges (root access) to the cluster. We're doing this by binding the `tiller` ServiceAccount here to the 
+very powerful `cluster-admin` ClusterRole.
 
 ```console
 $ kubectl -n kube-system create serviceaccount tiller
@@ -644,11 +660,41 @@ $ # kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2
 
 #### Deploying the Service Catalog
 
+The [Service Catalog](https://github.com/kubernetes-incubator/service-catalog) Kubernetes project is super-interesting and promising.
+
+If you're interested in the concept, watch these two KubeCon talks:
+ - Steward, the Kubernetes-Native Service Broker [A] - Gabe Monroy, Deis: [Youtube video](https://youtu.be/PNPVDKrbgsE?list=PLj6h78yzYM2PAavlbv0iZkod4IVh_iGqV)
+ - The Open Service Broker API and the Kubernetes Service Catalog [B] - Paul Morie & Chip Childers: [Youtube video](https://youtu.be/p35hOAAsxrQ?list=PLj6h78yzYM2PAavlbv0iZkod4IVh_iGqV)
+
+Anyway, here's how to install the Service Catalog on your `kubeadm` cluster:
+
 ```console
 $ git clone https://github.com/luxas/service-catalog -b workshop
-
-$ helm install service-catalog/charts/catalog --name service-catalog --namespace catalog
+$ # First install the Service Catalog API Server and Controller Manager and then a sample Broker
+$ helm install service-catalog/charts/catalog --name catalog --namespace catalog
 $ helm install service-catalog/charts/ups-broker --name ups-broker --namespace ups-broker
+```
+
+I highly recommend this [Service Catalog Walkthough](https://github.com/kubernetes-incubator/service-catalog/blob/master/docs/walkthrough.md).
+
+TL;DR; Now that our Service Catalog API Server is there, we can `kubectl get` the resources:
+
+```console
+$ kubectl get instances,bindings,serviceclasses,brokers
+...
+```
+
+You can for example make an Instance and a Binding to the sample `ups-broker` you installed above like this:
+
+```console
+$ kubectl apply -f demos/service-catalog/example.yaml
+namespace "test-ns" created
+instance "ups-instance" created
+brinding "ups-binding" created
+
+$ # Since the binding referenced a new Secret called "my-secret", the Service Catalog should now have created it for you:
+$ kubectl -n test-ns get secret my-secret
+TODO
 ```
 
 ### Manifest list images
