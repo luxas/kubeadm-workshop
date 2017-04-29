@@ -91,7 +91,7 @@ apiServerExtraArgs:
   feature-gates: "TaintBasedEvictions=true"
   proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
   proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
-selfHosted: true
+kubernetesVersion: "latest"
 ```
 
 A brief walkthrough what the statements mean:
@@ -102,7 +102,7 @@ A brief walkthrough what the statements mean:
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
 ```console
-$ KUBE_HYPERKUBE_IMAGE=luxas/hyperkube:v1.6.0-kubeadm-workshop-2 kubeadm init --config kubeadm.yaml
+$ kubeadm init --config kubeadm.yaml
 ```
 
 Make sure you got kubeadm v1.6.1 or higher and docker 1.12 or 1.13.
@@ -115,12 +115,20 @@ sudo chown $(id -u):$(id -g) $HOME/admin.conf
 export KUBECONFIG=$HOME/admin.conf
 ```
 
-`KUBE_HYPERKUBE_IMAGE` is an alpha feature of kubeadm and will be an option in the config file in future versions of kubeadm.
+#### Make the `kube-proxy` DaemonSet multi-platform
 
-The reason I'm using my own `hyperkube` image for this demo is two-fold:
+Since `kube-proxy` runs in a DaemonSet, it will be scheduled on all nodes. By default, an image with the architecture that `kubeadm init` is run on
+is used in the DaemonSet, so if you ran `kubeadm init` on an `arm64` image, the `kube-proxy` image with be `gcr.io/google_containers/kube-proxy-arm64`.
 
-1) Since the hyperkube is a manifest list, it will work on multiple platforms smoothly out of the box
-2) It contains ~v1.6 Kubernetes + [this patch](https://github.com/kubernetes/kubernetes/pull/42911) (commit [b705835bae42925e0f9ed2a1fcf22d1d6b1dc680](https://github.com/kubernetes/kubernetes/tree/b705835bae42925e0f9ed2a1fcf22d1d6b1dc680) in order to be exact) that makes it possible to register extended API Servers smoothly.
+To make it possible to add nodes with other architectures we have to switch the image to a manifest list like this. First, make the DaemonSet, rolling-upgradeable
+and then change the image to a manifest list.
+
+```console
+$ kubectl -n kube-system patch ds kube-proxy -p '{"spec": {"updateStrategy": {"type": "RollingUpdate"}}}'
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-alpha.2
+```
+
+With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
 
 #### Deploying the Pod networking layer
 
@@ -294,20 +302,26 @@ Here is how to create a default Rook cluster by deploying the operator, a contro
 ThirdPartyResource and finally a StorageClass.
 
 ```console
-$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-operator.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-operator.yaml
 clusterrole "rook-operator" created
 serviceaccount "rook-operator" created
 clusterrolebinding "rook-operator" created
 deployment "rook-operator" created
 
-$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-cluster.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-cluster.yaml
 cluster "my-rook" created
 
-$ kubectl apply -f https://github.com/rook/rook/tree/master/demos/kubernetes/rook-storageclass.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-storageclass.yaml
+pool "replicapool" created
+storageclass "rook-block" created
 
 $ # Repeat this step for all namespaces you want to deploy PersistentVolumes with Rook in
-$ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n kube-system apply -f -
-secret "rook-rbd-user" created
+$ kubectl get secret rook-rook-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n kube-system apply -f -
+secret "rook-rook-user" created
+
+$ # In order to make Rook the default Storage Provider by making the `rook-block` Storage Class the default, run this:
+$ kubectl patch storageclass rook-block -p '{"metadata":{"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
+storageclass "rook-block" patched
 ```
 
 One limitation with v0.3.0 is that you can't control to which namespaces the rook authentication Secret should be deployed, so if you want to create
@@ -389,7 +403,8 @@ deployment "wardle-apiserver" created
 service "api" created
 apiservice "v1alpha1.wardle.k8s.io" created
 
-$ kubectl get secret rook-rbd-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n wardle apply -f -
+$ kubectl get secret rook-rook-user -oyaml | sed "/resourceVer/d;/uid/d;/self/d;/creat/d;/namespace/d" | kubectl -n wardle apply -f -
+secret "rook-rook-user" created
 ```
 
 After a few minutes, when the extended API server is up and running, `kubectl` will auto-discover that API group and it will be possible to
@@ -433,10 +448,24 @@ flunder "my-first-flunder" created
 If you want to make sure this is real, you can check the etcd database running in-cluster with this command:
 
 ```console
-$ kubectl -n wardle exec -it $(kubectl -n wardle get po -l app=wardle-apiserver -otemplate --template "{{ (index .items 0).metadata.name}}") -c etcd /bin/sh -- -c \
-	"ETCDCTL_API=3 etcdctl get /registry/wardle.kubernetes.io/registry/wardle.kubernetes.io/wardle.k8s.io/flunders/my-first-flunder"
-/registry/wardle.kubernetes.io/registry/wardle.kubernetes.io/wardle.k8s.io/flunders/my-first-flunder
-{"kind":"Flunder","apiVersion":"wardle.k8s.io/v1alpha1","metadata":{"name":"my-first-flunder","uid":"8e4e1029-0c14-11e7-928a-def758206707","creationTimestamp":"2017-03-18T19:53:28Z","labels":{"sample-label":"true"},"annotations":{"kubectl.kubernetes.io/last-applied-configuration":"{\"apiVersion\":\"wardle.k8s.io/v1alpha1\",\"kind\":\"Flunder\",\"metadata\":{\"annotations\":{},\"labels\":{\"sample-label\":\"true\"},\"name\":\"my-first-flunder\",\"namespace\":\"default\"}}\n"}},"spec":{},"status":{}}
+$ kubectl -n wardle exec -it $(kubectl -n wardle get po -l app=wardle-apiserver -otemplate --template "{{ (index .items 0).metadata.name}}") -c etcd /bin/sh -- -c "ETCDCTL_API=3 etcdctl get /registry/wardle.kubernetes.io/registry/wardle.kubernetes.io/wardle.k8s.io/flunders/my-first-flunder" | grep -v /registry/wardle | jq .
+{
+  "kind": "Flunder",
+  "apiVersion": "wardle.k8s.io/v1alpha1",
+  "metadata": {
+    "name": "my-first-flunder",
+    "uid": "bef75e16-2c5b-11e7-999c-1602732a5d02",
+    "creationTimestamp": "2017-04-28T21:43:41Z",
+    "labels": {
+      "sample-label": "true"
+    },
+    "annotations": {
+      "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"wardle.k8s.io/v1alpha1\",\"kind\":\"Flunder\",\"metadata\":{\"annotations\":{},\"labels\":{\"sample-label\":\"true\"},\"name\":\"my-first-flunder\",\"namespace\":\"default\"}}\n"
+    }
+  },
+  "spec": {},
+  "status": {}
+}
 ```
 
 Conclusion, the Flunder object we created was saved in the separate etcd instance!
@@ -476,7 +505,6 @@ prometheus-operated   None            <none>        9090/TCP         4m
 sample-metrics-prom   10.108.71.184   <nodes>       9090:30999/TCP   4m
 ```
 
-
 ### Deploying a custom metrics API Server and a sample app
 
 In v1.6, the Horizontal Pod Autoscaler controller can now consume custom metrics for autoscaling.
@@ -514,7 +542,7 @@ clusterrole "custom-metrics-server-resources" created
 clusterrolebinding "hpa-controller-custom-metrics" created
 ```
 
-If you want to be able to `curl` the custom metrics API server easily (i.e. allow anyone to access the API), you can
+If you want to be able to `curl` the custom metrics API server easily (i.e. allow anyone to access the Custom Metrics API), you can
 run this `kubectl` command:
 
 ```console
@@ -529,15 +557,23 @@ service "sample-metrics-app" created
 servicemonitor "sample-metrics-app" created
 horizontalpodautoscaler "sample-metrics-app-hpa" created
 ingress "sample-metrics-app" created
-
-$ ab -n 10000 -c 1000 $(kubectl get svc sample-metrics-app -o template --template {{.spec.clusterIP}})/
 ```
+
+Now that we have our sample app, we should generate some load against it!
+If you don't have [rakyll's](https://github.com/rakyll) excellent [hey](https://github.com/rakyll/hey) load generator already, you can install it this way:
+
+```console
+$ # Install hey
+$ docker run -it -v /usr/local/bin:/go/bin golang:1.8 go get github.com/rakyll/hey
+
+$ export APP_ENDPOINT=$(kubectl get svc sample-metrics-app -o template --template {{.spec.clusterIP}}); echo ${APP_ENDPOINT}
+$ hey -n 50000 -c 1000 http://${APP_ENDPOINT}
+```
+
+Then you can go and check out the Custom Metrics API, it should notice that a lot of requests have been served recently.
 
 ```console
 $ export CM_API=$(kubectl -n custom-metrics get svc api -o template --template {{.spec.clusterIP}}); echo $CM_API
-$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1
-TODO
-
 $ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metrics-app/http_requests_total
 {
   "kind": "MetricValueList",
@@ -552,13 +588,15 @@ $ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/names
         "apiVersion": "/__internal"
       },
       "metricName": "http_requests_total",
-      "timestamp": "2017-03-25T13:37:25Z",
+      "timestamp": "2017-04-28T22:06:47Z",
       "window": 60,
-      "value": "66m"
+      "value": "2691791m"
     }
   ]
 }
 ```
+
+You can query custom metrics for individual Pods as well: 
 
 ```console
 $ kubectl get po
@@ -589,6 +627,28 @@ $ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/names
     }
   ]
 }
+```
+
+#### Install `helm`
+
+```console
+$ curl -sSL https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get | bash
+```
+
+```console
+$ kubectl -n kube-system create serviceaccount tiller
+$ kubectl -n kube-system patch deploy tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccountName":"tiller"}}}}'
+$ kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount kube-system:tiller
+$ # kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2.3.1
+```
+
+#### Deploying the Service Catalog
+
+```console
+$ git clone https://github.com/luxas/service-catalog -b workshop
+
+$ helm install service-catalog/charts/catalog --name service-catalog --namespace catalog
+$ helm install service-catalog/charts/ups-broker --name ups-broker --namespace ups-broker
 ```
 
 ### Manifest list images
