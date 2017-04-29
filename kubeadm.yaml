@@ -9,4 +9,4 @@ apiServerExtraArgs:
   feature-gates: "TaintBasedEvictions=true"
   proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
   proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
-selfHosted: true
+kubernetesVersion: "latest"
