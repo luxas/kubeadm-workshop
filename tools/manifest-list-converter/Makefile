@@ -9,7 +9,7 @@ GRAFANA_VERSION?=v4.0.2
 INFLUXDB_VERSION?=v1.1.1
 DASHBOARD_VERSION?=v1.6.0
 ETCD_VERSION?=3.0.17
-#PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/latest.txt)
+PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/latest.txt)
 
 tag-%:
 	docker pull $(GCR_REGISTRY)/$*
@@ -18,19 +18,19 @@ tag-%:
 
 push-%:
 	$(MAKE) tag-heapster-$*:$(HEAPSTER_VERSION)
-#	$(MAKE) tag-heapster-grafana-$*:$(GRAFANA_VERSION)
-#	$(MAKE) tag-heapster-influxdb-$*:$(INFLUXDB_VERSION)
+	$(MAKE) tag-heapster-grafana-$*:$(GRAFANA_VERSION)
+	$(MAKE) tag-heapster-influxdb-$*:$(INFLUXDB_VERSION)
 	$(MAKE) tag-kubernetes-dashboard-$*:$(DASHBOARD_VERSION)
 	$(MAKE) tag-etcd-$*:$(ETCD_VERSION)
-#	$(MAKE) tag-kube-proxy-$*:$(PROXY_VERSION)
+	$(MAKE) tag-kube-proxy-$*:$(PROXY_VERSION)
 
 push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-ARCH:$(HEAPSTER_VERSION) --target $(REGISTRY)/heapster:$(HEAPSTER_VERSION)
-#	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-grafana-ARCH:$(GRAFANA_VERSION) --target $(REGISTRY)/heapster-grafana:$(GRAFANA_VERSION)
-#	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-influxdb-ARCH:$(INFLUXDB_VERSION) --target $(REGISTRY)/heapster-influxdb:$(INFLUXDB_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-grafana-ARCH:$(GRAFANA_VERSION) --target $(REGISTRY)/heapster-grafana:$(GRAFANA_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-influxdb-ARCH:$(INFLUXDB_VERSION) --target $(REGISTRY)/heapster-influxdb:$(INFLUXDB_VERSION)
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kubernetes-dashboard-ARCH:$(DASHBOARD_VERSION) --target $(REGISTRY)/kubernetes-dashboard:$(DASHBOARD_VERSION)
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/etcd-ARCH:$(ETCD_VERSION) --target $(REGISTRY)/etcd:$(ETCD_VERSION)
-#	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kube-proxy-ARCH:$(PROXY_VERSION) --target $(REGISTRY)/kube-proxy:$(PROXY_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kube-proxy-ARCH:$(PROXY_VERSION) --target $(REGISTRY)/kube-proxy:$(PROXY_VERSION)
 
 ./manifest-tool:
 	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.4.0/manifest-tool-linux-amd64 > manifest-tool
