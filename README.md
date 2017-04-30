@@ -352,12 +352,9 @@ Note that an Ingress rule was created for Grafana automatically. You can access 
 ### Sample API Server
 
 The core API Server is great, but what about if you want to write your own, extended API server that contains more high-level features that build on top of Kubernetes
-but still be able to control those high-level features from kubectl?
+but still be able to control those high-level features from kubectl? This is now possible using the API Aggregation feature that will make it into beta in v1.7
 
-This is possible, a lot of work has been put into this and this feature will probably be ready in Kubernetes v1.7. If you can't wait, like me, you can test this flow 
-out easily already by using my patched `hyperkube` binary (which you probably do at this point).
-
-First, let's check which API groups are available in v1.6:
+First, let's check which API groups are available normally:
 
 ```console
 $ kubectl api-versions
@@ -748,10 +745,6 @@ I will work to upstream these changes eventually though.
 Feel free to contribute and help me improve things here and I'd be very thankful ;)
 
 I use the Github tracker for tracking the improvements I want to make to this repository
-
-### Known Issues
-
-* The cluster will not survive a reboot: This is due to how self-hosting is implemented in kubeadm at the time. Basically there is no checkpointer, so when kubelet comes up the 2nd time, it does not know what to run - it will try to get that information from the API, which is waiting for kubelet to start it.
 
 ### License
 
