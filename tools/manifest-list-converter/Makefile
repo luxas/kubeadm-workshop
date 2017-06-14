@@ -7,9 +7,9 @@ GCR_REGISTRY?=gcr.io/google_containers
 HEAPSTER_VERSION?=v1.3.0
 GRAFANA_VERSION?=v4.0.2
 INFLUXDB_VERSION?=v1.1.1
-DASHBOARD_VERSION?=v1.6.0
+DASHBOARD_VERSION?=v1.6.1
 ETCD_VERSION?=3.0.17
-PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/latest.txt)
+PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/latest-1.7.txt)
 
 tag-%:
 	docker pull $(GCR_REGISTRY)/$*
@@ -33,5 +33,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kube-proxy-ARCH:$(PROXY_VERSION) --target $(REGISTRY)/kube-proxy:$(PROXY_VERSION)
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.4.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool
