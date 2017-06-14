@@ -17,7 +17,7 @@ ifeq ($(ARCH),arm64)
 	BASEIMAGE=aarch64/busybox
 endif
 
-VERSION_SEMVER=1.5.2
+VERSION_SEMVER=1.7.1
 VERSION?=v$(VERSION_SEMVER)
 URL?=https://github.com/prometheus/prometheus/releases/download/$(VERSION)/prometheus-$(VERSION_SEMVER).linux-$(PROMARCH).tar.gz
 
