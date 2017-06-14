@@ -5,7 +5,7 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v1.2.0
+VERSION?=v1.3.0
 URL?=https://github.com/containous/traefik/releases/download/$(VERSION)/traefik_linux-$(ARCH)
 
 all: build
