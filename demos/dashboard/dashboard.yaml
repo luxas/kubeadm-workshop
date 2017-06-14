@@ -44,7 +44,7 @@ spec:
       serviceAccountName: dashboard
       containers:
       - name: kubernetes-dashboard
-        image: luxas/kubernetes-dashboard:v1.6.0
+        image: luxas/kubernetes-dashboard:v1.6.1
         imagePullPolicy: Always
         ports:
         - containerPort: 9090
