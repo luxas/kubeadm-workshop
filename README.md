@@ -79,7 +79,7 @@ SSH into your master node, and switch to the `root` account of the machine or us
 As mentioned earlier, experimental features of different kinds will be used in this tutorial to show off the latest and greatest features in Kubernetes.
 
 kubeadm for example, can take options from a configuration file in order to be customized easily.
-But the API exposed in v1.6 is _not_ stable, and under heavy development. So this will definitely change (to the better) in time for v1.7.
+But the API exposed right now is _not_ stable, and under heavy development. So this will definitely change (to the better) in time for v1.7.
 
 The configuration file we'll use here looks like this in `kubeadm.yaml`:
 
@@ -106,7 +106,7 @@ You can now go ahead and initialize the master node with this command (assuming 
 $ kubeadm init --config kubeadm.yaml
 ```
 
-Make sure you got kubeadm v1.6.1 or higher and docker 1.12 or 1.13.
+Make sure you got kubeadm v1.7.0-beta.2 or higher and docker 1.12 or 1.13.
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
 Here is an example how to do it as a regular user.
 
