@@ -64,6 +64,10 @@ deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 apt-get update
 apt-get install -y docker.io kubeadm
+
+# Temporarily, download kubeadm from master builds
+ARCH=amd64
+curl -sSL dl.k8s.io/ci-cross/$(curl -sSL dl.k8s.io/ci-cross/latest.txt)/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
 ```
 
 You should do this on all machines you're planning to include in your cluster, and these commands are exactly the same regardless on which architecture you are on.
