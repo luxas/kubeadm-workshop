@@ -7,6 +7,4 @@ controllerManagerExtraArgs:
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
-  proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
-  proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
-kubernetesVersion: "latest"
+kubernetesVersion: "latest-1.7"

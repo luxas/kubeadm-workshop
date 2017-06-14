@@ -89,15 +89,12 @@ controllerManagerExtraArgs:
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
-  proxy-client-cert-file: "/etc/kubernetes/pki/front-proxy-client.crt"
-  proxy-client-key-file: "/etc/kubernetes/pki/front-proxy-client.key"
-kubernetesVersion: "latest"
+kubernetesVersion: "latest-1.7"
 ```
 
 A brief walkthrough what the statements mean:
  - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for the [custom metrics API](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
  - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
- - `proxy-client-cert-file/proxy-client-key-file` set the cert/key pair for the API Server when it's talking to the built-in aggregated API Server.
 
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
@@ -322,6 +319,8 @@ secret "rook-rook-user" created
 $ # In order to make Rook the default Storage Provider by making the `rook-block` Storage Class the default, run this:
 $ kubectl patch storageclass rook-block -p '{"metadata":{"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
 storageclass "rook-block" patched
+
+$ apt-get update && apt-get install ceph-common -y
 ```
 
 One limitation with v0.3.0 is that you can't control to which namespaces the rook authentication Secret should be deployed, so if you want to create
@@ -358,7 +357,7 @@ First, let's check which API groups are available normally:
 
 ```console
 $ kubectl api-versions
-apiregistration.k8s.io/v1alpha1
+apiregistration.k8s.io/v1beta1
 apps/v1beta1
 authentication.k8s.io/v1
 authentication.k8s.io/v1beta1
@@ -409,7 +408,7 @@ create, list and delete Flunder objects just as any other API object.
 
 ```console
 $ kubectl api-versions
-apiregistration.k8s.io/v1alpha1
+apiregistration.k8s.io/v1beta1
 apps/v1beta1
 authentication.k8s.io/v1
 authentication.k8s.io/v1beta1
