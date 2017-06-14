@@ -51,10 +51,10 @@ spec:
   resources:
     requests:
       memory: 300Mi
-  storage:
-    resources:
-      requests:
-        storage: 3Gi
+  #storage:
+  #  resources:
+  #    requests:
+  #      storage: 3Gi
 ---
 apiVersion: v1
 kind: Service
