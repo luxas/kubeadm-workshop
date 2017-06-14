@@ -122,7 +122,7 @@ and then change the image to a manifest list.
 
 ```console
 $ kubectl -n kube-system patch ds kube-proxy -p '{"spec": {"updateStrategy": {"type": "RollingUpdate"}}}'
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-alpha.2
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-beta.1
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
@@ -299,16 +299,16 @@ Here is how to create a default Rook cluster by deploying the operator, a contro
 ThirdPartyResource and finally a StorageClass.
 
 ```console
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-operator.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-operator.yaml
 clusterrole "rook-operator" created
 serviceaccount "rook-operator" created
 clusterrolebinding "rook-operator" created
 deployment "rook-operator" created
 
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-cluster.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-cluster.yaml
 cluster "my-rook" created
 
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/master/demo/kubernetes/rook-storageclass.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-storageclass.yaml
 pool "replicapool" created
 storageclass "rook-block" created
 
