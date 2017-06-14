@@ -16,7 +16,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClass: rook-block
+  storageClassName: rook-block
 ---
 kind: ServiceAccount
 apiVersion: v1
