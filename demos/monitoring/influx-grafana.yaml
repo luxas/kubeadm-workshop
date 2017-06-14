@@ -12,6 +12,7 @@ spec:
   resources:
     requests:
       storage: 1Gi
+  storageClass: rook-block
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -27,6 +28,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
+  storageClass: rook-block
 ---
 apiVersion: apps/v1beta1
 kind: Deployment
