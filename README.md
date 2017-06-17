@@ -65,9 +65,10 @@ EOF
 apt-get update
 apt-get install -y docker.io kubeadm
 
-# Temporarily, download kubeadm from master builds
+# Temporarily, download kubeadm from master builds until v1.7.0-beta.3 is released
 ARCH=amd64
-curl -sSL dl.k8s.io/ci-cross/v1.8.0-alpha.0.557+0cb3cb254909d7/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
+curl -sSL dl.k8s.io/ci-cross/$(curl -sSL dl.k8s.io/ci-cross/latest.txt)/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
+curl -sSL dl.k8s.io/release/v1.7.0-beta.2/bin/linux/${ARCH}/kubectl > /usr/bin/kubectl
 ```
 
 You should do this on all machines you're planning to include in your cluster, and these commands are exactly the same regardless on which architecture you are on.
@@ -126,7 +127,7 @@ and then change the image to a manifest list.
 
 ```console
 $ kubectl -n kube-system patch ds kube-proxy -p '{"spec": {"updateStrategy": {"type": "RollingUpdate"}}}'
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-beta.1
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-beta.2
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
