@@ -75,7 +75,7 @@ spec:
       serviceAccountName: prometheus-operator
       containers:
        - name: prometheus-operator
-         image: luxas/prometheus-operator:v0.7.1
+         image: luxas/prometheus-operator:v0.10.1
          resources:
            requests:
              cpu: 100m

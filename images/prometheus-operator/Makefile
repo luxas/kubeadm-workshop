@@ -5,7 +5,7 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v0.7.1
+VERSION?=v0.10.1
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
@@ -22,8 +22,8 @@ build:
 	cp Dockerfile $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 
-	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.7 /bin/bash -c "\
-		git clone https://github.com/luxas/prometheus-operator -b fix_relabeling /go/src/github.com/coreos/prometheus-operator && \
+	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.8 /bin/bash -c "\
+		git clone --branch $(VERSION) https://github.com/coreos/prometheus-operator /go/src/github.com/coreos/prometheus-operator && \
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/operator github.com/coreos/prometheus-operator/cmd/operator"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
