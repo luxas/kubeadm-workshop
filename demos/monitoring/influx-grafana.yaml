@@ -158,7 +158,7 @@ metadata:
   name: monitoring-grafana
   namespace: kube-system
   annotations:
-    traefik.frontend.rule.type: pathprefixstrip
+    traefik.frontend.rule.type: PathPrefixStrip
 spec:
   rules:
   - http:

@@ -97,7 +97,7 @@ metadata:
   name: sample-metrics-app
   namespace: default
   annotations:
-    traefik.frontend.rule.type: pathprefixstrip
+    traefik.frontend.rule.type: PathPrefixStrip
 spec:
   rules:
   - http:
