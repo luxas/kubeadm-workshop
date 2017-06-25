@@ -65,10 +65,10 @@ EOF
 apt-get update
 apt-get install -y docker.io kubeadm
 
-# Temporarily, download kubeadm from master builds until v1.7.0-beta.3 is released
 ARCH=amd64
-curl -sSL dl.k8s.io/ci-cross/$(curl -sSL dl.k8s.io/ci-cross/latest.txt)/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
+curl -sSL dl.k8s.io/release/v1.8.0-alpha.1/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
 curl -sSL dl.k8s.io/release/v1.7.0-beta.2/bin/linux/${ARCH}/kubectl > /usr/bin/kubectl
+curl -sSL dl.k8s.io/release/v1.7.0-beta.2/bin/linux/${ARCH}/kubelet > /usr/bin/kubelet
 ```
 
 You should do this on all machines you're planning to include in your cluster, and these commands are exactly the same regardless on which architecture you are on.
