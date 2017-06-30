@@ -89,9 +89,13 @@ spec:
       serviceAccountName: custom-metrics-apiserver
       containers:
       - name: custom-metrics-server
-        image: luxas/custom-metrics-server:v0.2.1
+        image: luxas/k8s-prometheus-adapter
         args:
-        - --prometheus-endpoint=http://sample-metrics-prom.default.svc:9090
+        - --prometheus-url=http://sample-metrics-prom.default.svc:9090
+        - --metrics-relist-interval=30s
+        - --rate-interval=30s
+        - --v=10
+        - --logtostderr=true
         ports:
         - containerPort: 443
 ---
