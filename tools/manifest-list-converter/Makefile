@@ -4,12 +4,12 @@ ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 GCR_REGISTRY?=gcr.io/google_containers
-HEAPSTER_VERSION?=v1.3.0
+HEAPSTER_VERSION?=v1.4.0
 GRAFANA_VERSION?=v4.0.2
 INFLUXDB_VERSION?=v1.1.1
 DASHBOARD_VERSION?=v1.6.1
 ETCD_VERSION?=3.0.17
-PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/latest-1.7.txt)
+PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.7.txt)
 
 tag-%:
 	docker pull $(GCR_REGISTRY)/$*
