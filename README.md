@@ -64,11 +64,6 @@ deb http://apt.kubernetes.io/ kubernetes-xenial main
 EOF
 apt-get update
 apt-get install -y docker.io kubeadm
-
-ARCH=amd64
-curl -sSL dl.k8s.io/release/v1.7.0-rc.1/bin/linux/${ARCH}/kubeadm > /usr/bin/kubeadm
-curl -sSL dl.k8s.io/release/v1.7.0-rc.1/bin/linux/${ARCH}/kubectl > /usr/bin/kubectl
-curl -sSL dl.k8s.io/release/v1.7.0-rc.1/bin/linux/${ARCH}/kubelet > /usr/bin/kubelet
 ```
 
 You should do this on all machines you're planning to include in your cluster, and these commands are exactly the same regardless on which architecture you are on.
@@ -94,7 +89,7 @@ controllerManagerExtraArgs:
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
-kubernetesVersion: "latest-1.7"
+kubernetesVersion: "stable-1.7"
 ```
 
 A brief walkthrough what the statements mean:
@@ -127,7 +122,7 @@ and then change the image to a manifest list.
 
 ```console
 $ kubectl -n kube-system patch ds kube-proxy -p '{"spec": {"updateStrategy": {"type": "RollingUpdate"}}}'
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0-beta.2
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.

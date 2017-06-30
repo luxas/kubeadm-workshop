@@ -7,4 +7,4 @@ controllerManagerExtraArgs:
 apiServerExtraArgs:
   runtime-config: "api/all=true"
   feature-gates: "TaintBasedEvictions=true"
-kubernetesVersion: "latest-1.7"
+kubernetesVersion: "stable-1.7"
