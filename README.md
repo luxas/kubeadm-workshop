@@ -569,24 +569,23 @@ $ hey -n 50000 -c 1000 http://${APP_ENDPOINT}
 Then you can go and check out the Custom Metrics API, it should notice that a lot of requests have been served recently.
 
 ```console
-$ export CM_API=$(kubectl -n custom-metrics get svc api -o template --template {{.spec.clusterIP}}); echo $CM_API
-$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metrics-app/http_requests_total
+$ curl -sSLk https://10.96.0.1/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metricsapp/http_requests
 {
   "kind": "MetricValueList",
   "apiVersion": "custom-metrics.metrics.k8s.io/v1alpha1",
-  "metadata": {},
+  "metadata": {
+    "selfLink": "/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metrics-app/http_requests"
+  },
   "items": [
     {
       "describedObject": {
         "kind": "Service",
-        "namespace": "default",
         "name": "sample-metrics-app",
         "apiVersion": "/__internal"
       },
-      "metricName": "http_requests_total",
-      "timestamp": "2017-04-28T22:06:47Z",
-      "window": 60,
-      "value": "2691791m"
+      "metricName": "http_requests",
+      "timestamp": "2017-06-30T20:56:34Z",
+      "value": "501484m"
     }
   ]
 }
@@ -596,30 +595,31 @@ You can query custom metrics for individual Pods as well:
 
 ```console
 $ kubectl get po
-NAME                                   READY     STATUS    RESTARTS   AGE
-prometheus-operator-1505754769-vm60d   1/1       Running   0          9m
-prometheus-sample-metrics-prom-0       2/2       Running   0          7m
-rook-operator-1533318199-1qdf1         1/1       Running   0          13m
-sample-metrics-app-2440858958-cx8r8    1/1       Running   0          5m
-sample-metrics-app-2440858958-q6qc3    1/1       Running   0          5m
+NAME                                  READY     STATUS    RESTARTS   AGE
+prometheus-operator-815607840-zknhk   1/1       Running   0          38m
+prometheus-sample-metrics-prom-0      2/2       Running   0          33m
+rook-operator-3393217773-sglsv        1/1       Running   0          28m
+sample-metrics-app-3083280453-3hbd8   1/1       Running   0          33m
+sample-metrics-app-3083280453-fbds8   1/1       Running   0          1m
 
-$ curl -sSLk https://${CM_API}/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/pods/sample-metrics-app-2440858958-cx8r8/http_requests_total
+
+$ curl -sSLk https://10.96.0.1/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/pods/sample-metrics-app-3083280453-3hbd8/http_requests
 {
   "kind": "MetricValueList",
   "apiVersion": "custom-metrics.metrics.k8s.io/v1alpha1",
-  "metadata": {},
+  "metadata": {
+    "selfLink": "/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/pods/sample-metrics-app-3083280453-3hbd8/http_requests"
+  },
   "items": [
     {
       "describedObject": {
         "kind": "Pod",
-        "namespace": "default",
-        "name": "sample-metrics-app-2440858958-cx8r8",
+        "name": "sample-metrics-app-3083280453-3hbd8",
         "apiVersion": "/__internal"
       },
-      "metricName": "http_requests_total",
-      "timestamp": "2017-03-25T13:42:01Z",
-      "window": 60,
-      "value": "33m"
+      "metricName": "http_requests",
+      "timestamp": "2017-06-30T21:00:46Z",
+      "value": "433m"
     }
   ]
 }

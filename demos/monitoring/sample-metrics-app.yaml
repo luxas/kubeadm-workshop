@@ -88,7 +88,7 @@ spec:
       target:
         kind: Service
         name: sample-metrics-app
-      metricName: http_requests_total
+      metricName: http_requests
       targetValue: 100
 ---
 apiVersion: extensions/v1beta1
