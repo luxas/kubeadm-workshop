@@ -569,7 +569,7 @@ $ hey -n 50000 -c 1000 http://${APP_ENDPOINT}
 Then you can go and check out the Custom Metrics API, it should notice that a lot of requests have been served recently.
 
 ```console
-$ curl -sSLk https://10.96.0.1/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metricsapp/http_requests
+$ curl -sSLk https://10.96.0.1/apis/custom-metrics.metrics.k8s.io/v1alpha1/namespaces/default/services/sample-metrics-app/http_requests
 {
   "kind": "MetricValueList",
   "apiVersion": "custom-metrics.metrics.k8s.io/v1alpha1",
