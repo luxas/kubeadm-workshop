@@ -1,0 +1,4 @@
+kind: MasterConfiguration
+apiVersion: kubeadm.k8s.io/v1alpha1
+controllerManagerExtraArgs:
+  enable-hostpath-provisioner: "true"
