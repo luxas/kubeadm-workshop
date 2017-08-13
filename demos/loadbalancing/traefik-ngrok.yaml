@@ -1,4 +1,4 @@
-kind: Deployment
+ kind: Deployment
 apiVersion: apps/v1beta1
 metadata:
   name: traefik-ingress-controller
@@ -24,7 +24,7 @@ spec:
         effect: NoSchedule
       serviceAccountName: traefik-ingress-controller
       containers:
-      - image: luxas/traefik:v1.3.0
+      - image: luxas/traefik:v1.3.5
         name: traefik-ingress-controller
         resources:
           limits:
