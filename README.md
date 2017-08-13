@@ -102,7 +102,7 @@ You can now go ahead and initialize the master node with this command (assuming 
 $ kubeadm init --config kubeadm.yaml
 ```
 
-Make sure you got kubeadm v1.7.0-beta.2 or higher and docker 1.12 or 1.13.
+Make sure you got kubeadm v1.7.0 or higher and docker 1.12.x.
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
 Here is an example how to do it as a regular user.
 
@@ -121,8 +121,7 @@ To make it possible to add nodes with other architectures we have to switch the 
 and then change the image to a manifest list.
 
 ```console
-$ kubectl -n kube-system patch ds kube-proxy -p '{"spec": {"updateStrategy": {"type": "RollingUpdate"}}}'
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.0
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.3
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
@@ -181,7 +180,7 @@ I really like visualizing the cluster resources in the [Kubernetes Dashboard](ht
 You can install the dashboard with this command:
 
 ```console
-$ kubectl apply -f demos/dashboard/dashboard.yaml
+$ curl -sSL https://git.io/kube-dashboard | sed "s|image:.*|image: luxas/dashboard:v1.6.3|" | kubectl apply -f -
 serviceaccount "dashboard" created
 clusterrolebinding "dashboard-admin" created
 deployment "kubernetes-dashboard" created
@@ -299,16 +298,16 @@ Here is how to create a default Rook cluster by deploying the operator, a contro
 ThirdPartyResource and finally a StorageClass.
 
 ```console
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-operator.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.5/cluster/examples/kubernetes/rook-operator.yaml
 clusterrole "rook-operator" created
 serviceaccount "rook-operator" created
 clusterrolebinding "rook-operator" created
 deployment "rook-operator" created
 
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-cluster.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.5/cluster/examples/kubernetes/rook-cluster.yaml
 cluster "my-rook" created
 
-$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.4/demo/kubernetes/rook-storageclass.yaml
+$ kubectl apply -f https://raw.githubusercontent.com/rook/rook/release-0.5/cluster/examples/kubernetes/rook-storageclass.yaml
 pool "replicapool" created
 storageclass "rook-block" created
 
@@ -709,8 +708,7 @@ Currently, images are pushed for `amd64`, `arm` and `arm64`.
 
 I'd like to thank some people that have been very helpful to me while putting together this workshop.
 
-**David Eads** ([@deads2k](https://github.com/deads2k)) has been very helpful to me and answered my questions about API aggregation.
-He also wrote the patch for linking the kube-aggregator into kube-apiserver, and I've cherry-picked that patch to this demo env.
+**David Eads** ([@deads2k](https://github.com/deads2k)) has been very helpful to me and answered my questions about API aggregation, RBAC, etc..
 
 **Solly Ross** ([@DirectXMan12](https://github.com/DirectXMan12)) has worked on the custom metrics API and helped me quickly understand
 the essential parts of it. He also uploaded a [custom metrics API Server boilerplate](https://github.com/DirectXMan12/custom-metrics-boilerplate)
