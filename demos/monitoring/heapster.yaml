@@ -43,7 +43,7 @@ spec:
       serviceAccountName: heapster
       containers:
       - name: heapster
-        image: luxas/heapster:v1.3.0
+        image: luxas/heapster:v1.4.0
         command:
         - /heapster
         - --source=kubernetes:https://kubernetes.default
