@@ -4,25 +4,35 @@ ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 GCR_REGISTRY?=gcr.io/google_containers
+SC_REGISTRY?=quay.io/kubernetes-service-catalog
 HEAPSTER_VERSION?=v1.4.0
 GRAFANA_VERSION?=v4.0.2
 INFLUXDB_VERSION?=v1.1.1
-DASHBOARD_VERSION?=v1.6.1
+DASHBOARD_VERSION?=v1.6.3
 ETCD_VERSION?=3.0.17
+SERVICE_CATALOG_VERSION?=v0.0.15
 PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.7.txt)
 
-tag-%:
+gcr-tag-%:
 	docker pull $(GCR_REGISTRY)/$*
 	docker tag $(GCR_REGISTRY)/$* $(REGISTRY)/$*
 	docker push $(REGISTRY)/$*
 
+sc-tag:
+	docker pull $(SC_REGISTRY)/$*
+	docker tag $(SC_REGISTRY)/$* $(REGISTRY)/service-catalog-$*
+	docker push $(REGISTRY)/service-catalog-$*
+
 push-%:
-	$(MAKE) tag-heapster-$*:$(HEAPSTER_VERSION)
-	$(MAKE) tag-heapster-grafana-$*:$(GRAFANA_VERSION)
-	$(MAKE) tag-heapster-influxdb-$*:$(INFLUXDB_VERSION)
-	$(MAKE) tag-kubernetes-dashboard-$*:$(DASHBOARD_VERSION)
-	$(MAKE) tag-etcd-$*:$(ETCD_VERSION)
-	$(MAKE) tag-kube-proxy-$*:$(PROXY_VERSION)
+	$(MAKE) gcr-tag-heapster-$*:$(HEAPSTER_VERSION)
+	$(MAKE) gcr-tag-heapster-grafana-$*:$(GRAFANA_VERSION)
+	$(MAKE) gcr-tag-heapster-influxdb-$*:$(INFLUXDB_VERSION)
+	$(MAKE) gcr-tag-kubernetes-dashboard-$*:$(DASHBOARD_VERSION)
+	$(MAKE) gcr-tag-etcd-$*:$(ETCD_VERSION)
+	$(MAKE) gcr-tag-kube-proxy-$*:$(PROXY_VERSION)
+	$(MAKE) sc-tag-apiserver-$*:$(SERVICE_CATALOG_VERSION)
+	$(MAKE) sc-tag-controller-manager-$*:$(SERVICE_CATALOG_VERSION)
+	$(MAKE) sc-tag-user-broker-$*:$(SERVICE_CATALOG_VERSION)
 
 push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/heapster-ARCH:$(HEAPSTER_VERSION) --target $(REGISTRY)/heapster:$(HEAPSTER_VERSION)
@@ -31,6 +41,9 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kubernetes-dashboard-ARCH:$(DASHBOARD_VERSION) --target $(REGISTRY)/kubernetes-dashboard:$(DASHBOARD_VERSION)
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/etcd-ARCH:$(ETCD_VERSION) --target $(REGISTRY)/etcd:$(ETCD_VERSION)
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/kube-proxy-ARCH:$(PROXY_VERSION) --target $(REGISTRY)/kube-proxy:$(PROXY_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/service-catalog-apiserver-ARCH:$(SERVICE_CATALOG_VERSION) --target $(REGISTRY)/service-catalog-apiserver:$(SERVICE_CATALOG_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/service-catalog-controller-manager-ARCH:$(SERVICE_CATALOG_VERSION) --target $(REGISTRY)/service-catalog-controller-manager:$(SERVICE_CATALOG_VERSION)
+	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/service-catalog-user-broker-ARCH:$(SERVICE_CATALOG_VERSION) --target $(REGISTRY)/service-catalog-user-broker:$(SERVICE_CATALOG_VERSION)
 
 ./manifest-tool:
 	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
