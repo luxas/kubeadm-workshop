@@ -89,7 +89,7 @@ spec:
       serviceAccountName: custom-metrics-apiserver
       containers:
       - name: custom-metrics-server
-        image: luxas/k8s-prometheus-adapter
+        image: luxas/k8s-prometheus-adapter:v0.1.0
         args:
         - --prometheus-url=http://sample-metrics-prom.default.svc:9090
         - --metrics-relist-interval=30s
