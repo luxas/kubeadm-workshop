@@ -5,8 +5,8 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-# sample-apiserver commit: a988d967bc315d39c09f4ea338db610c9871c4c0
-VERSION?=v0.1.1
+COMMIT?=6c8eaa3c7eefa0f88cdcc24ecb7686f80dbc2630
+VERSION?=v0.2.0
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
@@ -23,8 +23,8 @@ build:
 	cp Dockerfile $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 
-	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.7 /bin/bash -c "\
-		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver && \
+	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.8 /bin/bash -c "\
+		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver -b $(COMMIT) && \
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/sample-apiserver k8s.io/sample-apiserver"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
