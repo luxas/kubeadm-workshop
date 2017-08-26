@@ -180,7 +180,7 @@ I really like visualizing the cluster resources in the [Kubernetes Dashboard](ht
 You can install the dashboard with this command:
 
 ```console
-$ curl -sSL https://git.io/kube-dashboard | sed "s|image:.*|image: luxas/dashboard:v1.6.3|" | kubectl apply -f -
+$ curl -sSL https://git.io/kube-dashboard | sed "s|image:.*|image: luxas/kubernetes-dashboard:v1.6.3|" | kubectl apply -f -
 serviceaccount "dashboard" created
 clusterrolebinding "dashboard-admin" created
 deployment "kubernetes-dashboard" created
