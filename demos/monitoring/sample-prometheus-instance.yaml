@@ -33,7 +33,7 @@ subjects:
   name: prometheus
   namespace: default
 ---
-apiVersion: monitoring.coreos.com/v1alpha1
+apiVersion: monitoring.coreos.com/v1
 kind: Prometheus
 metadata:
   name: sample-metrics-prom
@@ -43,7 +43,7 @@ metadata:
 spec:
   replicas: 1
   baseImage: luxas/prometheus
-  version: v2.0.0-beta.1
+  version: v2.0.0-beta.2
   serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
@@ -51,10 +51,11 @@ spec:
   resources:
     requests:
       memory: 300Mi
-  #storage:
-  #  resources:
-  #    requests:
-  #      storage: 3Gi
+  retention: 7d
+  storage:
+    resources:
+      requests:
+        storage: 3Gi
 ---
 apiVersion: v1
 kind: Service

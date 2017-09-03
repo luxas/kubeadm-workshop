@@ -5,16 +5,16 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-VERSION?=v0.11.1
+VERSION?=v0.12.0
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
 endif
 ifeq ($(ARCH),arm)
-	BASEIMAGE?=armhf/busybox
+	BASEIMAGE?=arm32v7/busybox
 endif
 ifeq ($(ARCH),arm64)
-	BASEIMAGE?=aarch64/busybox
+	BASEIMAGE?=arm64v8/busybox
 endif
 
 all: build
@@ -37,5 +37,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMAGE):$(VERSION)
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.6.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool

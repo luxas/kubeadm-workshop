@@ -59,7 +59,7 @@ spec:
   selector:
     app: sample-metrics-app
 ---
-apiVersion: monitoring.coreos.com/v1alpha1
+apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: sample-metrics-app

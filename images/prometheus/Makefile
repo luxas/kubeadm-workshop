@@ -11,13 +11,13 @@ ifeq ($(ARCH),amd64)
 endif
 ifeq ($(ARCH),arm)
 	PROMARCH=armv7
-	BASEIMAGE=armhf/busybox
+	BASEIMAGE=arm32v7/busybox
 endif
 ifeq ($(ARCH),arm64)
-	BASEIMAGE=aarch64/busybox
+	BASEIMAGE=arm64v8/busybox
 endif
 
-VERSION_SEMVER=2.0.0-beta.1
+VERSION_SEMVER=2.0.0-beta.2
 VERSION?=v$(VERSION_SEMVER)
 URL?=https://github.com/prometheus/prometheus/releases/download/$(VERSION)/prometheus-$(VERSION_SEMVER).linux-$(PROMARCH).tar.gz
 
@@ -38,5 +38,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMAGE):$(VERSION)
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.6.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool
