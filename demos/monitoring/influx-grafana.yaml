@@ -55,7 +55,7 @@ spec:
         effect: NoSchedule
       containers:
       - name: grafana
-        image: luxas/heapster-grafana-amd64:v4.3.2
+        image: luxas/heapster-grafana:v4.4.3
         ports:
         - containerPort: 3000
           protocol: TCP
@@ -81,7 +81,8 @@ spec:
           name: grafana-storage
       volumes:
       - name: grafana-storage
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: grafana-pv-claim
 ---
 apiVersion: v1
 kind: Service
@@ -125,13 +126,14 @@ spec:
         effect: NoSchedule
       containers:
       - name: influxdb
-        image: luxas/heapster-influxdb-amd64:v1.3.0
+        image: luxas/heapster-influxdb:v1.3.3
         volumeMounts:
         - mountPath: /data
           name: influxdb-storage
       volumes:
       - name: influxdb-storage
-        emptyDir: {}
+        persistentVolumeClaim:
+          claimName: influxdb-pv-claim
 ---
 apiVersion: v1
 kind: Service
