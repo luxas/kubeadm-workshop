@@ -45,5 +45,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:latest --target $(REGISTRY)/$(IMAGE):latest
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.6.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool
