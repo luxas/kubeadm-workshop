@@ -7,12 +7,12 @@ ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 VERSION?=$(shell curl -sSL https://raw.githubusercontent.com/nodejs/docker-node/master/7.7/alpine/Dockerfile | grep "ENV NODE_VERSION" | awk '{print $$3}')
 
 ifeq ($(ARCH),arm)
-	BASEIMAGE?=armhf\\/alpine:3.5
+	BASEIMAGE?=arm32v6\\/alpine:3.6
 	QEMUARCH=arm
 endif
 ifeq ($(ARCH),arm64)
-	BASEIMAGE?=aarch64\\/alpine:3.5
-	QEMUARCH=aarch64
+	BASEIMAGE?=arm64v8\\/alpine:3.6
+	QEMUARCH=arm64v8
 endif
 
 all: build

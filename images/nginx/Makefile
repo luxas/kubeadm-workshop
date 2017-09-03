@@ -6,12 +6,12 @@ ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 ifeq ($(ARCH),arm)
-	BASEIMAGE?=armhf\\/alpine:3.5
+	BASEIMAGE?=arm32v6\\/alpine:3.6
 	QEMUARCH=arm
 endif
 ifeq ($(ARCH),arm64)
-	BASEIMAGE?=aarch64\\/alpine:3.5
-	QEMUARCH=aarch64
+	BASEIMAGE?=arm64v8\\/alpine:3.6
+	QEMUARCH=arm64v8
 endif
 
 VERSION?=$(shell curl -sSL https://raw.githubusercontent.com/nginxinc/docker-nginx/master/mainline/alpine/Dockerfile | grep "ENV NGINX_VERSION" | awk '{print $$3}')
