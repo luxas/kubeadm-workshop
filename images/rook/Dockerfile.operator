@@ -1,4 +1,0 @@
-FROM BASEIMAGE
-COPY rook-operator /usr/bin/
-COPY ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/usr/bin/rook-operator"]
