@@ -6,16 +6,16 @@ ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 COMMIT?=6c8eaa3c7eefa0f88cdcc24ecb7686f80dbc2630
-VERSION?=v0.2.0
+VERSION?=v0.2.1
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox
 endif
 ifeq ($(ARCH),arm)
-	BASEIMAGE?=armhf/busybox
+	BASEIMAGE?=arm32v7/busybox
 endif
 ifeq ($(ARCH),arm64)
-	BASEIMAGE?=aarch64/busybox
+	BASEIMAGE?=arm64v8/busybox
 endif
 
 all: build
@@ -24,7 +24,8 @@ build:
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 
 	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.8 /bin/bash -c "\
-		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver -b $(COMMIT) && \
+		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver && \
+		cd /go/src/k8s.io/sample-apiserver && git checkout $(COMMIT) && \
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/sample-apiserver k8s.io/sample-apiserver"
 
 	docker build -t $(REGISTRY)/$(IMAGE)-$(ARCH):$(VERSION) $(TEMP_DIR)
@@ -37,5 +38,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/$(IMAGE)-ARCH:$(VERSION) --target $(REGISTRY)/$(IMAGE):$(VERSION)
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.5.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.6.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool
