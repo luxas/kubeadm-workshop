@@ -86,10 +86,7 @@ controllerManagerExtraArgs:
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
-apiServerExtraArgs:
-  runtime-config: "api/all=true"
-  feature-gates: "TaintBasedEvictions=true"
-kubernetesVersion: "stable-1.7"
+kubernetesVersion: "latest-1.8"
 ```
 
 A brief walkthrough what the statements mean:
@@ -102,7 +99,7 @@ You can now go ahead and initialize the master node with this command (assuming 
 $ kubeadm init --config kubeadm.yaml
 ```
 
-Make sure you got kubeadm v1.7.0 or higher and docker 1.12.x.
+Make sure you got kubeadm v1.8.0-beta.1 or higher and docker 1.12.x.
 In order to control your cluster securely, you need to specify the `KUBECONFIG` variable to `kubectl` knows where to look for the admin credentials.
 Here is an example how to do it as a regular user.
 
@@ -121,7 +118,7 @@ To make it possible to add nodes with other architectures we have to switch the 
 and then change the image to a manifest list.
 
 ```console
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.7.3
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.8.0-beta.1
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
@@ -131,10 +128,17 @@ With those two commands, `kube-proxy` will come up successfully on whatever node
 The networking layer in Kubernetes is extensible, and you may pick the networking solution that fits you the best.
 I've tested this with Weave Net, but it should work with any other compliant provider.
 
-Here's how to use Weave Net as the networking provider:
+Here's how to use Weave Net as the networking provider the really easy way:
 
 ```console
 $ kubectl apply -f https://git.io/weave-kube-1.6
+```
+
+**OR** you can run these two commands if you want to encrypt the communication between nodes:
+
+```console
+$ kubectl create secret -n kube-system generic weave-passwd --from-literal=weave-passwd=$(hexdump -n 16 -e '4/4 "%08x" 1 "\n"' /dev/random)
+$ kubectl apply -n kube-system -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')&password-secret=weave-passwd"
 ```
 
 ### Setting up the worker nodes
@@ -650,7 +654,7 @@ very powerful `cluster-admin` ClusterRole.
 $ kubectl -n kube-system create serviceaccount tiller
 $ kubectl -n kube-system patch deploy tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccountName":"tiller"}}}}'
 $ kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount kube-system:tiller
-$ # kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2.3.1
+$ kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2.5.1
 ```
 
 #### Deploying the Service Catalog
