@@ -86,12 +86,13 @@ controllerManagerExtraArgs:
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
   node-monitor-grace-period: "10s"
+apiServerExtraArgs:
+  runtime-config: "api/all=true"
 kubernetesVersion: "latest-1.8"
 ```
 
 A brief walkthrough what the statements mean:
  - `horizontal-pod-autoscaler-use-rest-clients: "true"` tells the controller manager to look for the [custom metrics API](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
- - `runtime-config: "api/all=true"` enables the `autoscaling/v2alpha1` API
 
 You can now go ahead and initialize the master node with this command (assuming you're `root`, append `sudo` if not):
 
