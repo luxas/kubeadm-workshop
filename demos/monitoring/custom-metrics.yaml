@@ -73,9 +73,11 @@ metadata:
     app: custom-metrics-apiserver
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: custom-metrics-apiserver
   template:
     metadata:
-      name: custom-metrics-apiserver
       labels:
         app: custom-metrics-apiserver
     spec:
