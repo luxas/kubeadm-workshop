@@ -8,11 +8,11 @@ SC_REGISTRY?=quay.io/kubernetes-service-catalog
 HEAPSTER_VERSION?=v1.4.0
 GRAFANA_VERSION?=v4.4.3
 INFLUXDB_VERSION?=v1.3.3
-DASHBOARD_VERSION?=v1.6.3
+DASHBOARD_VERSION?=v1.7.1
 ETCD_VERSION?=3.0.17
-SERVICE_CATALOG_VERSION?=v0.0.17
-HELM_VERSION?=v2.6.1
-PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.7.txt)
+SERVICE_CATALOG_VERSION?=v0.0.23
+HELM_VERSION?=v2.6.2
+PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.8.txt)
 
 gcr-tag-%:
 	docker pull $(GCR_REGISTRY)/$*
@@ -52,5 +52,5 @@ push: ./manifest-tool $(addprefix push-,$(ALL_ARCH))
 	./manifest-tool push from-args --platforms $(ML_PLATFORMS) --template $(REGISTRY)/tiller-ARCH:$(HELM_VERSION) --target $(REGISTRY)/tiller:$(HELM_VERSION)
 
 ./manifest-tool:
-	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.6.0/manifest-tool-linux-amd64 > manifest-tool
+	curl -sSL https://github.com/estesp/manifest-tool/releases/download/v0.7.0/manifest-tool-linux-amd64 > manifest-tool
 	chmod +x manifest-tool
