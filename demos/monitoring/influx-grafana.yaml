@@ -30,7 +30,7 @@ spec:
       storage: 5Gi
   storageClassName: rook-block
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: monitoring-grafana
@@ -101,7 +101,7 @@ spec:
   selector:
     k8s-app: grafana
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: monitoring-influxdb
