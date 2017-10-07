@@ -24,7 +24,7 @@ metadata:
   name: apiserver
   namespace: wardle
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: wardle:system:auth-delegator
@@ -37,7 +37,7 @@ subjects:
   name: apiserver
   namespace: wardle
 ---
-apiVersion: rbac.authorization.k8s.io/v1beta1
+apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: wardle-auth-reader
