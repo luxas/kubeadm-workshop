@@ -37,7 +37,7 @@ EOF
 curl -sSL https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-${ARCH}-v0.6.0.tgz | tar -xz -C /opt/cni/bin ./portmap
 
 # Install helm
-curl -sSL https://storage.googleapis.com/kubernetes-helm/helm-v2.6.1-linux-${ARCH}.tar.gz | tar -xz -C /usr/local/bin linux-${ARCH}/helm --strip-components=1
+curl -sSL https://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-${ARCH}.tar.gz | tar -xz -C /usr/local/bin linux-${ARCH}/helm --strip-components=1
 
 # Use overlay as the docker storage driver
 cat /proc/mounts | awk '{print $2}' | grep '/var/lib/docker' | xargs -r umount

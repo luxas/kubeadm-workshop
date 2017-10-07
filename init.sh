@@ -10,7 +10,7 @@ kubectl apply -n kube-system -f "https://cloud.weave.works/k8s/net?k8s-version=$
 kubectl taint nodes --all node-role.kubernetes.io/master-
 
 
-curl -sSL https://git.io/kube-dashboard | sed "s|image:.*|image: luxas/kubernetes-dashboard:v1.6.3|" | kubectl apply -f -
+curl -sSL https://git.io/kube-dashboard | sed "s|image:.*|image: luxas/kubernetes-dashboard:v1.7.1|" | kubectl apply -f -
 kubectl apply -f demos/dashboard/ingress.yaml
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/heapster/master/deploy/kube-config/rbac/heapster-rbac.yaml
@@ -56,7 +56,7 @@ helm init
 kubectl -n kube-system create serviceaccount tiller
 kubectl -n kube-system patch deploy tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccountName":"tiller"}}}}'
 kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount kube-system:tiller
-kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2.6.1
+kubectl -n kube-system set image deploy/tiller-deploy tiller=luxas/tiller:v2.6.2
 
 # Demo an aggregated API server
 kubectl apply -f demos/sample-apiserver/wardle.yaml
