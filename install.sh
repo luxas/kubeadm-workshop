@@ -42,7 +42,7 @@ curl -sSL https://storage.googleapis.com/kubernetes-helm/helm-v2.6.2-linux-${ARC
 # Use overlay as the docker storage driver
 cat /proc/mounts | awk '{print $2}' | grep '/var/lib/docker' | xargs -r umount
 rm -rf /var/lib/docker
-sed -e "s|/usr/bin/dockerd|/usr/bin/dockerd -s overlay|g" -i /lib/systemd/system/docker.service
+sed -e "s|/usr/bin/dockerd|/usr/bin/dockerd -s overlay2|g" -i /lib/systemd/system/docker.service
 systemctl daemon-reload
 systemctl restart docker
 
