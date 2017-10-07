@@ -3,7 +3,4 @@ kind: MasterConfiguration
 controllerManagerExtraArgs:
   horizontal-pod-autoscaler-use-rest-clients: "true"
   horizontal-pod-autoscaler-sync-period: "10s"
-  node-monitor-grace-period: "10s"
-apiServerExtraArgs:
-  runtime-config: "api/all=true"
-kubernetesVersion: "latest-1.8"
+kubernetesVersion: "stable-1.8"
