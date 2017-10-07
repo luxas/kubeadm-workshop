@@ -5,8 +5,8 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-COMMIT?=6c8eaa3c7eefa0f88cdcc24ecb7686f80dbc2630
-VERSION?=v0.2.1
+COMMIT?=b939b4b7ca161e038175e1180b2add7f33af990c
+VERSION?=v0.3.0
 
 ifeq ($(ARCH),amd64)
 	BASEIMAGE?=busybox

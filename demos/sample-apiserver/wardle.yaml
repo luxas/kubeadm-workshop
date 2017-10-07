@@ -60,6 +60,9 @@ metadata:
     app: wardle-apiserver
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: wardle-apiserver
   template:
     metadata:
       labels:
@@ -75,7 +78,7 @@ spec:
       serviceAccountName: apiserver
       containers:
       - name: wardle-server
-        image: luxas/sample-apiserver:v0.2.1
+        image: luxas/sample-apiserver:v0.3.0
         args:
         - --etcd-servers=http://localhost:2379
       - name: etcd
