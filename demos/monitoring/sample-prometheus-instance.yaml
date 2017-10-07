@@ -53,9 +53,12 @@ spec:
       memory: 300Mi
   retention: 7d
   storage:
-    resources:
-      requests:
-        storage: 3Gi
+    volumeClaimTemplate:
+      spec:
+        storageClassName: rook-block
+        resources:
+          requests:
+            storage: 3Gi
 ---
 apiVersion: v1
 kind: Service
