@@ -5,7 +5,7 @@ ARCH?=amd64
 ALL_ARCH=amd64 arm arm64
 ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
-COMMIT?=b939b4b7ca161e038175e1180b2add7f33af990c
+COMMIT?=aa1ce319891e390026f7f7759dceb03c99156a4b
 VERSION?=v0.3.0
 
 ifeq ($(ARCH),amd64)
