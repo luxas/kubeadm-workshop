@@ -167,6 +167,8 @@ metadata:
   namespace: kube-system
   annotations:
     traefik.frontend.rule.type: PathPrefixStrip
+    ingress.kubernetes.io/auth-type: "basic"
+    ingress.kubernetes.io/auth-secret: "traefik-basic-auth"
 spec:
   rules:
   - http:

@@ -41,6 +41,15 @@ subjects:
   name: traefik-ingress-controller
   namespace: kube-system
 ---
+apiVersion: v1
+data:
+  auth: a3ViZXJuZXRlczokYXByMSRVNDlTVllISiQzNnZVelFhQktTNzRtY3lpT0V6MUkuCg==
+kind: Secret
+metadata:
+  name: traefik-basic-auth
+  namespace: kube-system
+type: Opaque
+---
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -51,12 +60,10 @@ metadata:
 data:
   traefik.toml: |
     defaultEntryPoints = ["http"]
+    InsecureSkipVerify = true
     [entryPoints]
       [entryPoints.http]
       address = ":80"
-      [entryPoints.http.auth.basic]
-      # Login using simply "kubernetes:rocks!"
-      users = ["kubernetes:$apr1$G8MQMx/M$5SsH5VwBiGRH4bcbauEk61"]
 
     # Enable the kubernetes integration
     [kubernetes]
@@ -71,6 +78,7 @@ data:
 
   traefik-acme.toml: |
     defaultEntryPoints = ["http", "https"]
+    InsecureSkipVerify = true
     [entryPoints]
       [entryPoints.http]
       address = ":80"
@@ -78,9 +86,6 @@ data:
         entryPoint = "https"
       [entryPoints.https]
       address = ":443"
-      [entryPoints.https.auth.basic]
-      # Login using simply "kubernetes:rocks!"
-      users = ["kubernetes:$apr1$G8MQMx/M$5SsH5VwBiGRH4bcbauEk61"]
       [entryPoints.https.tls]
     [acme]
     email = "example@example.com"

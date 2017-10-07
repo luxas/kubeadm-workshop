@@ -24,7 +24,7 @@ spec:
         effect: NoSchedule
       serviceAccountName: traefik-ingress-controller
       containers:
-      - image: luxas/traefik:v1.3.5
+      - image: luxas/traefik:v1.3.8
         name: traefik-ingress-controller
         resources:
           limits:
