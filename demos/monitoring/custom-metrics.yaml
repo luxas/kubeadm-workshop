@@ -39,7 +39,7 @@ subjects:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: custom-metrics-read
+  name: custom-metrics-resource-reader
 rules:
 - apiGroups:
   - ""
@@ -54,15 +54,40 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: custom-metrics-read
+  name: custom-metrics-apiserver-resource-reader
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: custom-metrics-read
+  name: custom-metrics-resource-reader
 subjects:
 - kind: ServiceAccount
   name: custom-metrics-apiserver
   namespace: custom-metrics
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: custom-metrics-getter
+rules:
+- apiGroups:
+  - custom.metrics.k8s.io
+  resources:
+  - "*"
+  verbs:
+  - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: hpa-custom-metrics-getter
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: custom-metrics-getter
+subjects:
+- kind: ServiceAccount
+  name: horizontal-pod-autoscaler
+  namespace: kube-system
 ---
 apiVersion: apps/v1beta2
 kind: Deployment
@@ -91,7 +116,7 @@ spec:
       serviceAccountName: custom-metrics-apiserver
       containers:
       - name: custom-metrics-server
-        image: luxas/k8s-prometheus-adapter:v0.1.0
+        image: luxas/k8s-prometheus-adapter:v0.2.0-beta.0
         args:
         - --prometheus-url=http://sample-metrics-prom.default.svc:9090
         - --metrics-relist-interval=30s
@@ -118,16 +143,16 @@ spec:
 apiVersion: apiregistration.k8s.io/v1beta1
 kind: APIService
 metadata:
-  name: v1alpha1.custom-metrics.metrics.k8s.io
+  name: v1beta1.custom.metrics.k8s.io
 spec:
   insecureSkipTLSVerify: true
-  group: custom-metrics.metrics.k8s.io
+  group: custom.metrics.k8s.io
   groupPriorityMinimum: 1000
   versionPriority: 5
   service:
     name: api
     namespace: custom-metrics
-  version: v1alpha1
+  version: v1beta1
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

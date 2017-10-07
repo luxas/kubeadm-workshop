@@ -49,7 +49,6 @@ kubectl apply -f demos/monitoring/influx-grafana.yaml
 kubectl apply -f demos/monitoring/sample-prometheus-instance.yaml
 kubectl apply -f demos/monitoring/sample-metrics-app.yaml
 kubectl apply -f demos/monitoring/custom-metrics.yaml
-kubectl create clusterrolebinding allowall-cm --clusterrole custom-metrics-server-resources --user system:anonymous
 
 # Setup helm and install tiller
 helm init
