@@ -88,7 +88,7 @@ controllerManagerExtraArgs:
   node-monitor-grace-period: "10s"
 apiServerExtraArgs:
   runtime-config: "api/all=true"
-kubernetesVersion: "latest-1.8"
+kubernetesVersion: "stable-1.8"
 ```
 
 A brief walkthrough what the statements mean:
