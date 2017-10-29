@@ -119,7 +119,7 @@ To make it possible to add nodes with other architectures we have to switch the 
 and then change the image to a manifest list.
 
 ```console
-$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.8.0-beta.1
+$ kubectl -n kube-system set image daemonset/kube-proxy kube-proxy=luxas/kube-proxy:v1.8.0
 ```
 
 With those two commands, `kube-proxy` will come up successfully on whatever node you bring to your cluster.
