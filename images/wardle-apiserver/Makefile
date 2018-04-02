@@ -23,7 +23,7 @@ build:
 	cp Dockerfile $(TEMP_DIR)
 	cd $(TEMP_DIR) && sed -i "s|BASEIMAGE|$(BASEIMAGE)|g" Dockerfile
 
-	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.8 /bin/bash -c "\
+	docker run -it -v $(TEMP_DIR):/build -e GOARCH=$(ARCH) golang:1.10 /bin/bash -c "\
 		git clone https://github.com/kubernetes/sample-apiserver /go/src/k8s.io/sample-apiserver && \
 		cd /go/src/k8s.io/sample-apiserver && git checkout $(COMMIT) && \
 		CGO_ENABLED=0 go build -a -tags netgo -o /build/sample-apiserver k8s.io/sample-apiserver"
