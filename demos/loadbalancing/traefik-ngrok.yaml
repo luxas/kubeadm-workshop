@@ -1,5 +1,5 @@
 kind: Deployment
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 metadata:
   name: traefik-ingress-controller
   namespace: kube-system
@@ -95,7 +95,7 @@ data:
         addr: traefik-ingress-controller.kube-system:80
 ---
 kind: Deployment
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 metadata:
   name: ngrok
   namespace: kube-system
