@@ -43,7 +43,7 @@ metadata:
 spec:
   replicas: 1
   baseImage: luxas/prometheus
-  version: v2.0.0-rc.0
+  version: v2.2.1
   serviceAccountName: prometheus
   serviceMonitorSelector:
     matchLabels:
