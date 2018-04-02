@@ -5,14 +5,14 @@ ML_PLATFORMS=linux/amd64,linux/arm,linux/arm64
 
 GCR_REGISTRY?=gcr.io/google_containers
 SC_REGISTRY?=quay.io/kubernetes-service-catalog
-HEAPSTER_VERSION?=v1.4.0
+HEAPSTER_VERSION?=v1.5.2
 GRAFANA_VERSION?=v4.4.3
 INFLUXDB_VERSION?=v1.3.3
 DASHBOARD_VERSION?=v1.7.1
-ETCD_VERSION?=3.0.17
-SERVICE_CATALOG_VERSION?=v0.0.23
-HELM_VERSION?=v2.6.2
-PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.8.txt)
+ETCD_VERSION?=3.2.17
+SERVICE_CATALOG_VERSION?=v0.1.12
+HELM_VERSION?=v2.8.2
+PROXY_VERSION?=$(shell curl -sSL dl.k8s.io/release/stable-1.10.txt)
 
 gcr-tag-%:
 	docker pull $(GCR_REGISTRY)/$*
