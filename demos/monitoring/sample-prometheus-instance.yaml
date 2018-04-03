@@ -53,9 +53,11 @@ spec:
       memory: 300Mi
   retention: 7d
   storage:
+    class: ""
+    selector: {}
+    resources: {}
     volumeClaimTemplate:
       spec:
-        storageClassName: rook-block
         resources:
           requests:
             storage: 3Gi
