@@ -1,5 +1,5 @@
-kind: Deployment
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: traefik-ingress-controller
   namespace: kube-system
@@ -15,7 +15,6 @@ spec:
       labels:
         app: traefik-ingress-controller
     spec:
-      hostNetwork: true
       nodeSelector:
         ingress-controller: "true"
       serviceAccountName: traefik-ingress-controller
@@ -37,11 +36,10 @@ spec:
           containerPort: 443
           hostPort: 443
         args:
-        - --configfile=/etc/traefik/traefik.toml
-        - --web=false
+        - --configfile=/etc/traefik/traefik-acme.toml
         volumeMounts:
         - name: traefik-cfg
-          mountPath: /etc/traefik/traefik.toml
+          mountPath: /etc/traefik/
       volumes:
       - name: traefik-cfg
         configMap:
