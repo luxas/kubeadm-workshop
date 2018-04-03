@@ -50,6 +50,15 @@ metadata:
   namespace: kube-system
 type: Opaque
 ---
+apiVersion: v1
+data:
+  auth: a3ViZXJuZXRlczokYXByMSRVNDlTVllISiQzNnZVelFhQktTNzRtY3lpT0V6MUkuCg==
+kind: Secret
+metadata:
+  name: traefik-basic-auth
+  namespace: default
+type: Opaque
+---
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -89,11 +98,11 @@ data:
       [entryPoints.https.tls]
     [acme]
     email = "example@example.com"
-    storageFile = "acme.json"
-    onDemand = true
+    storage = "acme.json"
     onHostRule = true
-    caServer = "https://acme-v01.api.letsencrypt.org/directory"
     entryPoint = "https"
+    [acme.httpChallenge]
+      entryPoint = "http"
 
     # Enable the kubernetes integration
     [kubernetes]
