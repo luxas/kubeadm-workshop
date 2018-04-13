@@ -525,7 +525,7 @@ Here is a diagram over how this works on a high level:
 
 ![Custom Metrics Architecture](pictures/custom-metrics-architecture.png)
 
-You can also read the full custom metrics API proposal [here](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/custom-metrics-api.md)
+You can also read the full custom metrics API proposal [here](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/instrumentation/custom-metrics-api.md)
 
 ```console
 $ kubectl apply -f demos/monitoring/custom-metrics.yaml
