@@ -11,7 +11,7 @@ This workshop is a part of my talk at KubeCon Berlin: [Autoscaling a Multi-Platf
 
 My slides for the presentation are here: http://slides.com/lucask/kubecon-berlin
 
-### Highligts
+### Highlights
 
 * Showcases what you can do on bare-metal, even behind a firewall with no public IP address
 * Demonstrates usage of cutting-edge technologies like Persistent Storage running on-cluster, Autoscaling based on Custom Metrics and Aggregated API Servers
