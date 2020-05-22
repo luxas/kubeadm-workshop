@@ -160,7 +160,7 @@ metadata:
   name: custom-metrics-server-resources
 rules:
 - apiGroups:
-  - custom-metrics.metrics.k8s.io
+  - custom.metrics.metrics.k8s.io
   resources: ["*"]
   verbs: ["*"]
 ---
